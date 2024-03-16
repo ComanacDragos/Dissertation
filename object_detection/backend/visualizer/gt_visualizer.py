@@ -66,7 +66,7 @@ class VisTool:
 
         self.data_info = data_info
         # load image and show it on the window
-        self.img = Image.fromarray(self.data_info.get_img_by_index(0))
+        self.img = self.data_info.get_img_by_index(0)
         self.photo = ImageTk.PhotoImage(self.img)
         self.label_img = Label(self.window, image=self.photo)
 
@@ -252,7 +252,7 @@ class VisTool:
                                 0.5, (255, 255, 255), 1)
 
             cv2.rectangle(img, (xmin, ymin), (xmax, ymax),
-                          self.args.gt_box_color, 1)
+                          (255, 0, 255), 1)
 
         return img
 
@@ -459,12 +459,12 @@ class VisTool:
             self.listBox_img_idx + 1, self.listBox_img.size()))
 
         name = self.listBox_img.get(self.listBox_img_idx)
-        self.window.title('DATASET : ' + self.data_info.dataset + '   ' + name)
+        self.window.title(name)
 
         img = self.data_info.get_img_by_name(name)
         self.img_width, self.img_height = img.width, img.height
 
-        img = np.asarray(img)
+        img = np.array(img)
 
         self.img_name = name
         self.img = img
@@ -473,16 +473,17 @@ class VisTool:
             objs = self.data_info.get_singleImg_gt(name)
             img = self.draw_gt_boxes(img, objs)
 
-        if self.data_info.results is not None and self.show_dets.get():
-            if self.data_info.mask is False:
-                dets = self.data_info.get_singleImg_dets(name)
-                img = self.draw_all_det_boxes(img, dets)
-            else:
-                dets = self.data_info.get_singleImg_dets(name).transpose(
-                    (1, 0))
-                img = self.draw_all_det_boxes_masks(img, dets)
-
-            self.clear_add_listBox_obj()
+        # TODO: adapt for predictions also
+        # if self.data_info.results is not None and self.show_dets.get():
+        #     if self.data_info.mask is False:
+        #         dets = self.data_info.get_singleImg_dets(name)
+        #         img = self.draw_all_det_boxes(img, dets)
+        #     else:
+        #         dets = self.data_info.get_singleImg_dets(name).transpose(
+        #             (1, 0))
+        #         img = self.draw_all_det_boxes_masks(img, dets)
+        #
+        #     self.clear_add_listBox_obj()
 
         self.show_img = img
         img = Image.fromarray(img)
@@ -885,7 +886,7 @@ class VisTool:
                 self.find_name))
 
     def run(self):
-        self.window.title('DATASET : ' + self.data_info.dataset)
+        self.window.title('GT visualizer')
         self.window.geometry('1280x800+350+100')
 
         # self.menubar.add_command(label='QUIT', command=self.window.quit)

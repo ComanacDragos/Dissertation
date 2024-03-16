@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from cv2 import imread
+import cv2
 from overrides import overrides
 
 from backend.enums import DataType
@@ -15,7 +15,8 @@ class ObjectDetectionDataGenerator(GenericDataGenerator):
         self.labels = sorted(class_mapping.values())
 
     def load_image(self, relative_image_path):
-        return imread(str(self.root / relative_image_path))
+        img = cv2.imread(str(self.root / relative_image_path))
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     def one_hot_encode_class(self, cls: str):
         remapped_class = self.class_mapping[cls]

@@ -20,7 +20,7 @@ class KittiDataGenerator(ObjectDetectionDataGenerator):
                 if cls not in self.class_mapping:
                     continue
                 classes.append(self.one_hot_encode_class(cls))
-                coordinates.append([left, top, right, bottom])
+                coordinates.append([float(left), float(top), float(right), float(bottom)])
 
         return {
             LabelType.COORDINATES: np.asarray(coordinates),
