@@ -10,14 +10,14 @@ from backend.utils import logger
 
 
 class GenericDataGenerator(tf.keras.utils.Sequence):
-    def __init__(self, root, csv_path, batch_size, stage: Stage):
+    def __init__(self, root, csv_path, batch_size, stage: Stage, shuffle=True):
         self.root = Path(root)
         self.data = pd.read_csv(csv_path)
         self.data = self.data[self.data['stage'] == stage.value]
         logger.log(f"Loaded {csv_path} for {stage.value} - {len(self.data)} samples")
         self.batch_size = batch_size
         self.stage = stage
-
+        self.shuffle = shuffle
         self.indices = np.arange(len(self.data))
         self.on_epoch_end()
 
@@ -47,7 +47,7 @@ class GenericDataGenerator(tf.keras.utils.Sequence):
         Called at the end of each epoch
         """
         # if required, shuffle your data after each epoch
-        if self.stage == Stage.TRAIN:
+        if self.stage == Stage.TRAIN and self.shuffle:
             self.indices = np.arange(len(self.data))
             np.random.shuffle(self.indices)
 

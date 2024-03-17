@@ -21,6 +21,7 @@ class ObjectDetectionVisDataGenerator:
         self.img_list = list(source_data_generator.data.loc[:, "image"])
         self.det_file = ''
         self.has_anno = True
+        self.mask = False
 
     def get_img_by_index(self, index):
         return Image.fromarray(self.source_data_generator[index][DataType.IMAGE][0])

@@ -11,9 +11,10 @@ import matplotlib
 import numpy as np
 from PIL import Image, ImageTk
 from tqdm import trange
+from pathlib import Path
 
 from backend.enums import Stage
-from object_detection_vis_data_generator import ObjectDetectionVisDataGenerator
+from backend.visualizer.object_detection_vis_data_generator import ObjectDetectionVisDataGenerator
 
 matplotlib.use('TkAgg')
 
@@ -173,7 +174,7 @@ class VisTool:
         self.img_name = ''
         self.show_img = None
 
-        self.output = output
+        self.output = Path(output)
         if not os.path.isdir(self.output):
             os.makedirs(self.output)
 
@@ -461,7 +462,12 @@ class VisTool:
         name = self.listBox_img.get(self.listBox_img_idx)
         self.window.title(name)
 
-        img = self.data_info.get_img_by_name(name)
+        try:
+            img = self.data_info.get_img_by_name(name)
+        except IndexError:
+            print("Bad name")
+            return
+
         self.img_width, self.img_height = img.width, img.height
 
         img = np.array(img)
@@ -779,9 +785,11 @@ class VisTool:
         self.change_iou_threshold()
 
     def save_img(self):
-        print('Save image to ' + os.path.join(self.output, self.img_name))
+        output_path = self.output / self.img_name
+        print('Save image to ' + str(output_path))
+        os.makedirs(output_path.parent, exist_ok=True)
         cv2.imwrite(
-            os.path.join(self.output, self.img_name),
+            str(output_path),
             cv2.cvtColor(self.show_img, cv2.COLOR_BGR2RGB))
         self.listBox_img_label.config(bg='#CCFF99')
 
@@ -809,7 +817,9 @@ class VisTool:
                         (1, 0))
                     img = self.draw_all_det_boxes_masks(img, dets)
 
-            cv2.imwrite(os.path.join(self.output, name),
+            output_path = self.output / self.img_name
+            os.makedirs(output_path.parent, exist_ok=True)
+            cv2.imwrite(output_path.parent,
                         cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
     def eventhandler(self, event):

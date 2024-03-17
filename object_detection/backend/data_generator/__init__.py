@@ -1,1 +1,2 @@
 from .method_data_generator import MethodDataGenerator
+from .kitti_data_generator import KittiDataGenerator
