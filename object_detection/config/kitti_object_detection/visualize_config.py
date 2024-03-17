@@ -9,8 +9,9 @@ class VisualizeConfig:
     @staticmethod
     def run():
         CommonConfig.init_experiment()
+        KittiDataGeneratorConfig.BATCH_SIZE = 1
         VisTool(
-            ObjectDetectionVisDataGenerator(KittiDataGeneratorConfig.build(Stage.VAL)),
+            ObjectDetectionVisDataGenerator(KittiDataGeneratorConfig.build(Stage.TRAIN)),
             output=CommonConfig.EXPERIMENT / "visualization"
         ).run()
 

@@ -465,13 +465,13 @@ class VisTool:
         try:
             img = self.data_info.get_img_by_name(name)
         except IndexError:
-            print("Bad name")
+            print("Bad name: ", name)
             return
 
         self.img_width, self.img_height = img.width, img.height
 
         img = np.array(img)
-
+        print(f"Image shape: {img.shape}")
         self.img_name = name
         self.img = img
 
@@ -714,7 +714,7 @@ class VisTool:
 
         scale = min(s_w, s_h)
         img = img.resize((int(img.width * scale), int(img.height * scale)),
-                         Image.ANTIALIAS)
+                         Image.LANCZOS)
         return img
 
     def clear_add_listBox_obj(self):

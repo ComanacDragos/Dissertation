@@ -1,23 +1,25 @@
 from abc import abstractmethod
 from pathlib import Path
-
+from typing import Dict, Any
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from backend.enums import Stage
+from backend.enums import Stage, DataType
 from backend.utils import logger
 
 
 class GenericDataGenerator(tf.keras.utils.Sequence):
-    def __init__(self, root, csv_path, batch_size, stage: Stage, shuffle=True):
+    def __init__(self, root, csv_path, batch_size, stage: Stage, shuffle=True, augmentations=None):
         self.root = Path(root)
         self.data = pd.read_csv(csv_path)
-        self.data = self.data[self.data['stage'] == stage.value]
+        if not stage == Stage.ALL:
+            self.data = self.data[self.data['stage'] == stage.value]
         logger.log(f"Loaded {csv_path} for {stage.value} - {len(self.data)} samples")
         self.batch_size = batch_size
         self.stage = stage
         self.shuffle = shuffle
+        self.augmentations = augmentations
         self.indices = np.arange(len(self.data))
         self.on_epoch_end()
 
@@ -33,7 +35,7 @@ class GenericDataGenerator(tf.keras.utils.Sequence):
         Creates the batch from the batch_data.
         """
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> Dict[DataType, Any]:
         if index >= self.__len__():
             raise IndexError("Too large index for dataset")
         batch_indices = self.indices[index * self.batch_size: (index + 1) * self.batch_size]

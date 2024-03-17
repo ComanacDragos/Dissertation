@@ -34,8 +34,4 @@ class ConvBlock:
 
         if self.activation_generator:
             x = self.activation_generator()(x)
-
-        if self.batch_norm_generator:
-            x = self.batch_norm_generator()(x)
-
         return x

@@ -1,11 +1,11 @@
 from abc import abstractmethod
 
 import cv2
+import numpy as np
 from overrides import overrides
 
-from backend.enums import DataType
 from backend.data_generator.generic_data_generator import GenericDataGenerator
-import numpy as np
+from backend.enums import DataType, LabelType
 
 
 class ObjectDetectionDataGenerator(GenericDataGenerator):
@@ -24,21 +24,41 @@ class ObjectDetectionDataGenerator(GenericDataGenerator):
         encoding[self.labels.index(remapped_class)] = 1
 
         return encoding
-        
+
     @abstractmethod
     def load_label(self, relative_label_path):
         pass
 
+    def load_sample(self, sample):
+        image = self.load_image(sample['image'])
+        label = self.load_label(sample['label'])
+
+        if self.augmentations:
+            augmented = self.augmentations(image=image, bboxes=label[LabelType.COORDINATES],
+                                           class_labels=label[LabelType.CLASS])
+            image = augmented['image']
+            label = {
+                LabelType.CLASS: np.asarray(augmented['class_labels']),
+                LabelType.COORDINATES: np.asarray(augmented['bboxes'])
+            }
+        return {
+            DataType.IDENTIFIER: sample['image'],
+            DataType.IMAGE: image,
+            DataType.LABEL: label,
+        }
+
     @overrides()
     def create_batch(self, batch_data):
-        image_paths = [sample['image'] for sample in batch_data]
-        label_paths = [sample['label'] for sample in batch_data]
+        # image_paths = [sample['image'] for sample in batch_data]
+        # label_paths = [sample['label'] for sample in batch_data]
+        #
+        # images = [self.load_image(image_path) for image_path in image_paths]
+        # labels = [self.load_label(label_path) for label_path in label_paths]
 
-        images = [self.load_image(image_path) for image_path in image_paths]
-        labels = [self.load_label(label_path) for label_path in label_paths]
+        samples = [self.load_sample(sample) for sample in batch_data]
 
         return {
-            DataType.IDENTIFIER: image_paths,
-            DataType.IMAGE: images,
-            DataType.LABEL: labels,
+            DataType.IDENTIFIER: [sample[DataType.IDENTIFIER] for sample in samples],
+            DataType.IMAGE: [sample[DataType.IMAGE] for sample in samples],
+            DataType.LABEL: [sample[DataType.LABEL] for sample in samples],
         }

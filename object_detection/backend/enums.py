@@ -4,6 +4,7 @@ from enum import Enum, auto
 class Stage(Enum):
     TRAIN = 'train'
     VAL = 'val'
+    ALL = 'all'
 
 
 class DataType(Enum):

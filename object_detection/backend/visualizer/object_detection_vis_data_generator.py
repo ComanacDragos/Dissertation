@@ -31,7 +31,8 @@ class ObjectDetectionVisDataGenerator:
         Return GT for a specific image in the following format: cls, xmin, ymin, width, height
         """
         data = self.source_data_generator[self.img_list.index(name)][DataType.LABEL][0]
-
+        if len(data[LabelType.CLASS]) == 0:
+            return []
         classes = [self.source_data_generator.labels[x] for x in np.argmax(data[LabelType.CLASS], axis=-1)]
         coordinates = [[int(xmin), int(ymin), int(xmax - xmin), int(ymax - ymin)] for xmin, ymin, xmax, ymax in
                        data[LabelType.COORDINATES].tolist()]
