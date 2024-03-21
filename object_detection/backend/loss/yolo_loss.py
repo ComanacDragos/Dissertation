@@ -1,13 +1,13 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 
-def create_cell_grid(no_anchors):
-    x_offset = np.zeros((GRID_SIZE, GRID_SIZE))
-    y_offset = np.zeros((GRID_SIZE, GRID_SIZE))
+def create_cell_grid(grid_size, no_anchors):
+    x_offset = np.zeros(grid_size)
+    y_offset = np.zeros(grid_size)
 
-    for i in range(GRID_SIZE):
-        for j in range(GRID_SIZE):
+    for i in range(grid_size[0]):
+        for j in range(grid_size[1]):
             x_offset[i][j] = j
             y_offset[i][j] = i
     x_offset = np.stack([x_offset] * no_anchors, axis=-1)
@@ -16,9 +16,9 @@ def create_cell_grid(no_anchors):
 
 
 class YoloLoss(tf.keras.losses.Loss):
-    def __init__(self, anchors, true_boxes,
+    def __init__(self, anchors, no_classes, grid_size,
                  l_coord=5., l_noobj=0.5, l_class=3., l_obj=2.,
-                 nb_class=len(ENCODE_LABEL), iou_threshold=0.6, enable_logs=False):
+                 iou_threshold=0.6, enable_logs=False):
         super(YoloLoss, self).__init__()
         self.l_coord = l_coord
         self.l_noobj = l_noobj
@@ -27,15 +27,12 @@ class YoloLoss(tf.keras.losses.Loss):
         self.iou_threshold = iou_threshold
 
         self.anchors = anchors
-        self.true_boxes = true_boxes
-        self.cell_size = IMAGE_SIZE / GRID_SIZE
 
-        self.cell_grid = create_cell_grid(len(anchors))
+        self.cell_grid = create_cell_grid(grid_size, len(anchors))
 
-        self.nb_box = len(anchors) // 2
         self.enable_logs = enable_logs
-        self.nb_class = nb_class
-        self.class_wt = np.ones(self.nb_class, dtype="float32")
+        self.no_classes = no_classes
+        self.class_wt = np.ones(self.no_classes, dtype="float32")
 
     def call(self, y_true, y_pred: tf.Tensor):
         """
@@ -48,6 +45,7 @@ class YoloLoss(tf.keras.losses.Loss):
         y_true, y_pred : shape -> (batch_size, grid_size, grid_size, anchors, 8)
         Inspired from: https://github.com/experiencor/keras-yolo2/blob/master/frontend.py
         """
+        y_true, true_boxes = y_true
         mask_shape = tf.shape(y_true)[:4]
 
         conf_mask = tf.zeros(mask_shape)
@@ -112,8 +110,8 @@ class YoloLoss(tf.keras.losses.Loss):
 
         ### confidence mask: penelize predictors + penalize boxes with low IOU
         # penalize the confidence of the boxes, which have IOU with some ground truth box < 0.6
-        true_xy = self.true_boxes[..., 0:2]
-        true_wh = self.true_boxes[..., 2:4]
+        true_xy = true_boxes[..., 0:2]
+        true_wh = true_boxes[..., 2:4]
 
         true_wh_half = true_wh / 2.
         true_mins = true_xy - true_wh_half
@@ -174,49 +172,5 @@ class YoloLoss(tf.keras.losses.Loss):
 
 
 if __name__ == '__main__':
-    print()
-    # YoloLoss(np.ones((3, 2)), None)
-    # GRID_SIZE = 2
-    # g = create_cell_grid(1)
-    #
-    #
-    # GRID_SIZE = 3
-    #
-    # cell_x = tf.cast(tf.reshape(tf.tile(tf.range(GRID_SIZE), [GRID_SIZE]), (1, GRID_SIZE, GRID_SIZE, 1, 1)), tf.float32)
-    # cell_y = tf.transpose(cell_x, (0,2,1,3,4))
-    #
-    # cell_grid = tf.tile(tf.concat([cell_x,cell_y], -1), [32, 1, 1, 3, 1])
-    # cell_grid = cell_grid[0]
-    # g2 = create_cell_grid(3)
-    # for cy in range(GRID_SIZE):
-    #     for cx in range(GRID_SIZE):
-    #         print(cx, cy)
-    #         print(g2[cx, cy, :, :])
-    #         print("====")
-    #         print(cell_grid[cx, cy, :, :])
-    #         print("\n\n")
-    #
-    # print(g)
-    #
-    # print(list(range(0, 416, 32)))
-    #
-    # xy = np.zeros((2, 2, 1, 2))
-    # xy[0, 0, 0, 0] = 50 / 208
-    # xy[0, 0, 0, 1] = 60 / 208
-    #
-    # xy[0, 1, 0, 1] = 50 / 208
-    # xy[0, 1, 0, 0] = 260 / 208 - 1
-    #
-    # xy[1, 0, 0, 1] = 250 / 208 - 1
-    # xy[1, 0, 0, 0] = 60 / 208
-    #
-    # xy[1, 1, 0, 0] = 250 / 208 - 1
-    # xy[1, 1, 0, 1] = 260 / 208 - 1
-    #
-    # print(xy)
-    # print(xy.shape)
-    # xy = (xy + g) * 208
-    # print(xy)
-    # print(xy[0, 1, 0, :])
-    #
-    # print(xy[1, 0, 0, :])
+    grid = create_cell_grid((12, 39), 3)
+    print(grid)

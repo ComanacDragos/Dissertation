@@ -5,8 +5,6 @@ from backend.enums import Stage, DataType, LabelType
 from backend.utils import to_json, open_json
 from config.kitti_object_detection.data_generator_config import KittiDataGeneratorConfig
 from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 
 def generate_boxes():

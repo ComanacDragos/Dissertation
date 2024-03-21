@@ -49,12 +49,6 @@ class ObjectDetectionDataGenerator(GenericDataGenerator):
 
     @overrides()
     def create_batch(self, batch_data):
-        # image_paths = [sample['image'] for sample in batch_data]
-        # label_paths = [sample['label'] for sample in batch_data]
-        #
-        # images = [self.load_image(image_path) for image_path in image_paths]
-        # labels = [self.load_label(label_path) for label_path in label_paths]
-
         samples = [self.load_sample(sample) for sample in batch_data]
 
         return {

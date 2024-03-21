@@ -1,10 +1,11 @@
 import json
-import pickle
-import threading
 import os
-import tensorflow as tf
+import pickle
 import random
+import threading
+
 import numpy as np
+import tensorflow as tf
 
 
 class Logger:
@@ -116,3 +117,26 @@ def with_bounding_boxes(img, bounding_boxes, width=3):
 
 def mish(x):
     return x * tf.math.tanh(tf.math.softplus(x))
+
+
+def iou(bbox, other_bbox):
+    """
+    :param bbox: array of coordinates x_min, y_min, x_max, y_max
+    :param other_bbox: array of coordinates x_min, y_min, x_max, y_max
+    :return: Intersection/Union
+    """
+    x_min, y_min, x_max, y_max = bbox
+    other_x_min, other_y_min, other_x_max, other_y_max = other_bbox
+
+    intersect_width = min(x_max, other_x_max) - max(x_min, other_x_min)
+    intersect_height = min(y_max, other_y_max) - max(y_min, other_y_min)
+
+    if intersect_width <= 0 or intersect_height <= 0:
+        return 0
+
+    bbox_width, bbox_height = x_max - x_min, y_max - y_min
+    other_bbox_width, other_bbox_height = other_x_max - other_x_min, other_y_max - other_y_min
+
+    intersect = intersect_height * intersect_width
+    union = bbox_height * bbox_width + other_bbox_height * other_bbox_width - intersect
+    return float(intersect) / union
