@@ -17,5 +17,5 @@ class ContrastiveTrainer(GenericTrainer):
         return self.loss(*self.compute_similarities(inputs))
 
     @overrides
-    def forward(self, inputs):
-        return tf.concat(self.compute_similarities(inputs), axis=1)
+    def forward(self, samples):
+        return tf.concat(self.compute_similarities(samples), axis=1)

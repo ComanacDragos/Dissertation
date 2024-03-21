@@ -53,6 +53,6 @@ class ObjectDetectionDataGenerator(GenericDataGenerator):
 
         return {
             DataType.IDENTIFIER: [sample[DataType.IDENTIFIER] for sample in samples],
-            DataType.IMAGE: [sample[DataType.IMAGE] for sample in samples],
+            DataType.IMAGE: np.asarray([sample[DataType.IMAGE] for sample in samples]),
             DataType.LABEL: [sample[DataType.LABEL] for sample in samples],
         }

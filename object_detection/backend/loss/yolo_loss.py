@@ -15,11 +15,11 @@ def create_cell_grid(grid_size, no_anchors):
     return tf.cast(tf.stack([x_offset, y_offset], -1), tf.float32)
 
 
-class YoloLoss(tf.keras.losses.Loss):
+class YOLOLoss(tf.keras.losses.Loss):
     def __init__(self, anchors, no_classes, grid_size,
                  l_coord=5., l_noobj=0.5, l_class=3., l_obj=2.,
                  iou_threshold=0.6, enable_logs=False):
-        super(YoloLoss, self).__init__()
+        super(YOLOLoss, self).__init__()
         self.l_coord = l_coord
         self.l_noobj = l_noobj
         self.l_class = l_class

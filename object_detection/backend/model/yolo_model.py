@@ -92,7 +92,10 @@ class YOLOPreprocessing:
         return output, true_boxes
 
     def __call__(self, labels):
-        return [self.process_sample(label) for label in labels]
+        encodings, true_bboxes = [], []
+        for label in labels:
+            encodings, true_boxes = self.process_sample(label)
+        return np.asarray(encodings), np.asarray(true_bboxes)
 
 
 class YOLOPostprocessing:
@@ -132,11 +135,11 @@ class YOLOHead:
         self.grid_size = grid_size
         self.no_anchors = no_anchors
         self.no_classes = no_classes
-        self.conv_1x1 = conv_generator(3, no_anchors * (4 + 1 + no_classes))
+        self.conv_1x1 = conv_generator(3, no_anchors * (4 + 1 + no_classes))()
 
     def __call__(self, inputs):
         x = self.conv_1x1(inputs)
-        return Reshape(*self.grid_size, self.no_anchors, 4 + 1 + self.no_classes)(x)
+        return Reshape((*self.grid_size, self.no_anchors, 4 + 1 + self.no_classes))(x)
 
 
 if __name__ == '__main__':

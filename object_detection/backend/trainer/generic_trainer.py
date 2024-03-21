@@ -3,6 +3,7 @@ from tensorflow.keras.callbacks import CallbackList
 from backend.trainer.state import TrainState, EvalState
 from tqdm import tqdm
 from backend.utils import logger
+from backend.enums import DataType
 
 
 class GenericTrainer:
@@ -14,6 +15,7 @@ class GenericTrainer:
             optimizer,
             callbacks: CallbackList,
             model,
+            preprocessor,
             epochs
     ):
         self.train_dataset = train_dataset
@@ -22,6 +24,7 @@ class GenericTrainer:
         self.optimizer = optimizer
         self.callbacks = callbacks
         self.model = model
+        self.preprocessor = preprocessor
         self.epochs = epochs
 
     def train(self):
@@ -38,12 +41,13 @@ class GenericTrainer:
         self.callbacks.on_train_end()
 
     def compute_loss(self, inputs):
-        samples, labels = inputs
-        loss = self.loss(self.forward(inputs), labels)
+        samples, labels = inputs[DataType.IMAGE], inputs[DataType.LABEL]
+        if self.preprocessor:
+            labels = self.preprocessor(labels)
+        loss = self.loss(labels, self.forward(samples))
         return loss
 
-    def forward(self, inputs):
-        samples, _ = inputs
+    def forward(self, samples):
         predictions = self.model(samples)
         return predictions
 
