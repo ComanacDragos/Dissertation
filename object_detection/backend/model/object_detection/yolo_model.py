@@ -106,7 +106,7 @@ class YOLOPreprocessing:
 
 class YOLOPostprocessing:
     def __init__(self, image_size, grid_size, anchors, background_prob, box_filter=None):
-        self.image_size = image_size
+        self.image_size = image_size[::-1] # flip it in oder to have width, height
         self.grid_size = grid_size
         self.background_prob = background_prob
         self.cell_grid = create_cell_grid(grid_size, len(anchors))
@@ -134,6 +134,9 @@ class YOLOPostprocessing:
         classes = conf_scores * softmax(output[..., 5:])
 
         boxes = self._flatten(boxes)
+        clip_values = self.image_size + self.image_size
+        boxes = tf.clip_by_value(boxes, clip_value_min=0, clip_value_max=clip_values)
+
         classes = self._flatten(classes)
 
         processed_outputs = {

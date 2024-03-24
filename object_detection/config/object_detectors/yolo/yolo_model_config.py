@@ -11,12 +11,17 @@ from config.common.mobilenet_backbone_config import MobilenetBackboneConfig
 class YOLOModelConfig:
     CONV_GENERATOR = conv_generator
     ALPHA = 1.0
+    TRAIN_BACKBONE = False
 
     @staticmethod
     def build(input_shape, grid_size, no_anchors, no_classes):
         inputs = Input(input_shape)
         x = GenericModel(
-            backbone=MobilenetBackboneConfig.build(input_shape, YOLOModelConfig.ALPHA),
+            backbone=MobilenetBackboneConfig.build(
+                input_shape,
+                YOLOModelConfig.ALPHA,
+                trainable=YOLOModelConfig.TRAIN_BACKBONE
+            ),
             head=YOLOHead(grid_size, no_anchors, no_classes, YOLOModelConfig.CONV_GENERATOR)
         )(inputs)
         model = Model(inputs=inputs, outputs=x, name='YOLODetector')

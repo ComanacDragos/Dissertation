@@ -36,7 +36,7 @@ class YOLOTrainerConfig:
                 grid_size=YOLOTrainerConfig.GRID_SIZE
             ),
             optimizer=Adam(learning_rate=YOLOTrainerConfig.START_LR),
-            callbacks=CallbacksConfig.build(YOLOTrainerConfig.EXPERIMENT),
+            callbacks=CallbacksConfig.build(YOLOTrainerConfig.EXPERIMENT, KittiDataGeneratorConfig.LABELS),
             model=YOLOModelConfig.build(
                 input_shape=input_shape,
                 grid_size=YOLOTrainerConfig.GRID_SIZE,

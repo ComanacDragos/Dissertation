@@ -9,10 +9,10 @@ from backend.enums import DataType, LabelType
 
 
 class ObjectDetectionDataGenerator(GenericDataGenerator):
-    def __init__(self, class_mapping, **kwargs):
+    def __init__(self, class_mapping, labels, **kwargs):
         super().__init__(**kwargs)
         self.class_mapping = class_mapping
-        self.labels = sorted(class_mapping.values())
+        self.labels = labels
 
     def load_image(self, relative_image_path):
         img = cv2.imread(str(self.root / relative_image_path))

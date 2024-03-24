@@ -19,6 +19,7 @@ class KittiDataGeneratorConfig:
         "Tram": "Tram",
         "Person_sitting": "Person_sitting"
     }
+    LABELS = sorted(CLASS_MAPPING.values())
     SHUFFLE = False
     IMAGE_SHAPE = (370, 1220, 3)
     INPUT_SHAPE = (370 // 2, 1220 // 2, 3)
@@ -32,6 +33,7 @@ class KittiDataGeneratorConfig:
             batch_size=KittiDataGeneratorConfig.BATCH_SIZE,
             stage=stage,
             class_mapping=KittiDataGeneratorConfig.CLASS_MAPPING,
+            labels=KittiDataGeneratorConfig.LABELS,
             shuffle=KittiDataGeneratorConfig.SHUFFLE,
             augmentations=A.Compose([
                 A.Crop(

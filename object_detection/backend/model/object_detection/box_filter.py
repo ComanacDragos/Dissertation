@@ -26,6 +26,6 @@ class BoxFilter:
 
         return {
             OutputType.COORDINATES: filter_tensor(nms_boxes, nms_valid),
-            OutputType.CLASS_PROBABILITIES: filter_tensor(nms_classes, nms_valid),
+            OutputType.CLASS_PROBABILITIES: filter_tensor(nms_scores, nms_valid),
             OutputType.CLASS_LABEL: filter_tensor(nms_classes, nms_valid)
         }

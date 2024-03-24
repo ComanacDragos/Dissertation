@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+from backend.loss.custom_loss import CustomLoss
 
 
 def create_cell_grid(grid_size, no_anchors):
@@ -15,7 +16,7 @@ def create_cell_grid(grid_size, no_anchors):
     return tf.cast(tf.stack([x_offset, y_offset], -1), tf.float32)
 
 
-class YOLOLoss(tf.keras.losses.Loss):
+class YOLOLoss(CustomLoss):
     def __init__(self, anchors, no_classes, grid_size,
                  l_coord=5., l_noobj=0.5, l_class=3., l_obj=2.,
                  iou_threshold=0.6, enable_logs=False):
@@ -168,7 +169,13 @@ class YOLOLoss(tf.keras.losses.Loss):
             loss = tf.compat.v1.Print(loss, [loss_class], message='Loss Class \t', summarize=1000)
             loss = tf.compat.v1.Print(loss, [loss], message='Total Loss \t', summarize=1000)
 
-        return loss
+        loss_dict = {
+            'loss_xy': loss_xy,
+            'loss_wh': loss_wh,
+            'loss_conf': loss_conf,
+            'loss_class': loss_class
+        }
+        return loss, loss_dict
 
 
 if __name__ == '__main__':

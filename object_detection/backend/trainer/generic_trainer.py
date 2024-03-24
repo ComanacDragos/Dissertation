@@ -1,11 +1,10 @@
-import time
-
 import tensorflow as tf
 from tensorflow.keras.callbacks import CallbackList
-from backend.trainer.state import TrainState, EvalState
 from tqdm import tqdm
-from backend.utils import logger
+
 from backend.enums import DataType
+from backend.trainer.state import TrainState, EvalState
+from backend.utils import logger
 
 
 class GenericTrainer:
@@ -34,7 +33,6 @@ class GenericTrainer:
     def train(self):
         self.model.compile(self.optimizer)
 
-        self.callbacks.on_train_begin()
         for epoch in range(self.epochs):
             logger.log(f"\nTrain epoch {epoch}")
             self.callbacks.on_epoch_begin(epoch)
@@ -42,14 +40,12 @@ class GenericTrainer:
             logger.log(f"\nEval epoch {epoch}")
             self.eval_loop(epoch)
             self.callbacks.on_epoch_end(epoch)
-        self.callbacks.on_train_end()
 
     def compute_loss(self, inputs, network_output):
         labels = inputs[DataType.LABEL]
         if self.preprocessor:
             labels = self.preprocessor(labels)
-        loss = self.loss(labels, network_output)
-        return loss
+        return self.loss(labels, network_output)
 
     def forward(self, samples):
         predictions = self.model(samples)
@@ -71,12 +67,13 @@ class GenericTrainer:
 
             with tf.GradientTape() as tape:
                 network_output = self.forward(samples)
-                loss_value = self.compute_loss(inputs, network_output)
+                loss_value, loss_dict = self.compute_loss(inputs, network_output)
 
             grads = tape.gradient(loss_value, self.model.trainable_weights)
             self.optimizer.apply_gradients(zip(grads, self.model.trainable_weights))
 
             loss_value = loss_value.numpy()
+            loss_dict = {loss_type: value.numpy() for loss_type, value in loss_dict.items()}
             pbar.set_postfix_str(f"Train Loss: {round(loss_value, 4)}")
 
             if self.postprocessor:
@@ -91,7 +88,7 @@ class GenericTrainer:
                     inputs=inputs,
                     optimizer=self.optimizer,
                     model=self.model,
-                    loss=loss_value,
+                    loss={'train_loss': loss_value, **loss_dict},
                     predictions=predictions
                 )
             )
@@ -107,7 +104,10 @@ class GenericTrainer:
             samples, labels = inputs[DataType.IMAGE], inputs[DataType.LABEL]
             network_output = self.forward(samples)
 
-            loss_value = self.compute_loss(inputs, network_output).numpy()
+            loss_value, loss_dict = self.compute_loss(inputs, network_output)
+
+            loss_value = loss_value.numpy()
+            loss_dict = {loss_type: value.numpy() for loss_type, value in loss_dict.items()}
             pbar.set_postfix_str(f"Eval Loss: {round(loss_value, 4)}")
 
             if self.postprocessor:
@@ -122,7 +122,7 @@ class GenericTrainer:
                     inputs=inputs,
                     predictions=predictions,
                     model=self.model,
-                    loss=loss_value
+                    loss={'eval_loss': loss_value, **loss_dict},
                 )
             )
         self.callbacks.on_test_end(
