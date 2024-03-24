@@ -6,8 +6,8 @@ from backend.enums import Stage, DataType
 
 class KittiDataGeneratorConfig:
     ROOT = r"C:\Users\Dragos\datasets\KITTI"
-    CSV_PATH = "csvs/kitti.csv"
-    BATCH_SIZE = 8
+    CSV_PATH = "csvs/kitti_toy.csv"
+    BATCH_SIZE = 1
     CLASS_MAPPING = {
         "Pedestrian": "Pedestrian",
         "Truck": "Truck",
@@ -22,6 +22,7 @@ class KittiDataGeneratorConfig:
     SHUFFLE = False
     IMAGE_SHAPE = (370, 1220, 3)
     INPUT_SHAPE = (370 // 2, 1220 // 2, 3)
+    MAX_BOXES_PER_IMAGE = 21
 
     @staticmethod
     def build(stage: Stage):

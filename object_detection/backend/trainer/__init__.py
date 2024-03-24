@@ -1,1 +1,0 @@
-from .contrastive_trainer import ContrastiveTrainer

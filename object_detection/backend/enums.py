@@ -17,3 +17,9 @@ class DataType(Enum):
 class LabelType(Enum):
     COORDINATES = auto()
     CLASS = auto()
+
+
+class OutputType(Enum):
+    COORDINATES = auto()
+    CLASS_PROBABILITIES = auto()
+    CLASS_LABEL = auto()

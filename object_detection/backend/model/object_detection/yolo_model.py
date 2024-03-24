@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import Reshape
 
-from backend.enums import LabelType
+from backend.enums import LabelType, OutputType
 from backend.loss.yolo_loss import create_cell_grid
 from backend.model.softmax import softmax
 from backend.utils import iou
@@ -11,7 +11,7 @@ from backend.utils import iou
 
 class YOLOPreprocessing:
     def __init__(self, image_size, grid_size, anchors, no_classes, max_boxes_per_image):
-        self.anchors = np.asarray(anchors) # wh format
+        self.anchors = np.asarray(anchors)  # wh format
         self.no_classes = no_classes
         self.image_size = np.asarray(image_size)
         self.grid_size = np.asarray(grid_size)
@@ -39,7 +39,7 @@ class YOLOPreprocessing:
 
         return np.asarray(conf_scores), np.asarray(boxes), np.asarray(classes)
 
-    def process_sample(self, label):
+    def process_sample(self, classes, coordinates):
         """
             Maps the input image to it's corresponding tensor output
 
@@ -52,7 +52,8 @@ class YOLOPreprocessing:
         output = np.zeros((*self.grid_size, no_anchors, (5 + self.no_classes)))
         cell_size = self.image_size / self.grid_size
         true_boxes = np.zeros((1, 1, 1, self.max_boxes_per_image, 4))
-        for box_index, (one_hot_encoding, bbox) in enumerate(zip(label[LabelType.CLASS], label[LabelType.COORDINATES])):
+        for box_index in range(len(coordinates)):
+            one_hot_encoding, bbox = classes[box_index], coordinates[box_index]
             center = np.asarray([np.mean(bbox[1::2]), np.mean(bbox[0::2])])
             cy, cx = np.asarray(center / cell_size, dtype=int)
 
@@ -92,21 +93,31 @@ class YOLOPreprocessing:
         return output, true_boxes
 
     def __call__(self, labels):
-        encodings, true_bboxes = [], []
+        batch_encodings, batch_true_bboxes = [], []
         for label in labels:
-            encodings, true_boxes = self.process_sample(label)
-        return np.asarray(encodings), np.asarray(true_bboxes)
+            encodings, true_boxes = self.process_sample(label[LabelType.CLASS], label[LabelType.COORDINATES])
+            batch_encodings.append(encodings)
+            batch_true_bboxes.append(true_boxes)
+        batch_encodings, batch_true_bboxes = np.stack(batch_encodings), np.stack(batch_true_bboxes)
+
+        return (tf.convert_to_tensor(batch_encodings, dtype=tf.float32),
+                tf.convert_to_tensor(batch_true_bboxes, dtype=tf.float32))
 
 
 class YOLOPostprocessing:
-    def __init__(self, image_size, grid_size, anchors, apply_argmax=True):
+    def __init__(self, image_size, grid_size, anchors, background_prob, box_filter=None):
         self.image_size = image_size
+        self.grid_size = grid_size
+        self.background_prob = background_prob
         self.cell_grid = create_cell_grid(grid_size, len(anchors))
         cell_size = np.asarray(image_size) / np.asarray(grid_size)
         self.cell_size = cell_size[1], cell_size[0]
 
         self.anchors = np.asarray(anchors)
-        self.apply_argmax = apply_argmax
+        self.box_filter = box_filter
+
+    def _flatten(self, output):
+        return tf.reshape(output, (-1, self.grid_size[0] * self.grid_size[1] * len(self.anchors), output.shape[-1]))
 
     def __call__(self, output):
         """
@@ -117,17 +128,21 @@ class YOLOPostprocessing:
         """
         xy = (K.sigmoid(output[..., :2]) + self.cell_grid) * self.cell_size
         wh = K.exp(output[..., 2:4]) * self.anchors
+        boxes = tf.concat([xy - wh / 2, xy + wh / 2], axis=-1)
+
         conf_scores = K.sigmoid(output[..., 4:5])
         classes = conf_scores * softmax(output[..., 5:])
 
-        if self.apply_argmax:
-            conf_scores = K.max(classes, axis=-1)
-            classes = K.argmax(classes)
-        else:
-            tf.squeeze(conf_scores)
-        return conf_scores, \
-               K.clip(tf.concat([xy - wh / 2, xy + wh / 2], axis=-1), min_value=0, max_value=self.image_size[::-1]), \
-               classes
+        boxes = self._flatten(boxes)
+        classes = self._flatten(classes)
+
+        processed_outputs = {
+            OutputType.COORDINATES: boxes,
+            OutputType.CLASS_PROBABILITIES: classes
+        }
+        if self.box_filter:
+            processed_outputs = self.box_filter(processed_outputs)
+        return processed_outputs
 
 
 class YOLOHead:
@@ -165,15 +180,16 @@ if __name__ == '__main__':
         5
     )
 
-    processed_gt, true_bboxes = preprocessor(fake_gt)[0]
+    processed_gt, true_bboxes = preprocessor(fake_gt * 8)
     print(processed_gt.shape)
+    processed_gt = processed_gt[0]
     for i in range(processed_gt.shape[0]):
         for j in range(processed_gt.shape[1]):
             print(i, j)
             print(processed_gt[i, j, :, :])
             print()
 
-    conf, boxes, classes = preprocessor.decode_gt(processed_gt)
+    _conf, _boxes, _classes = preprocessor.decode_gt(processed_gt)
 
-    print(boxes)
-    print(classes)
+    print(_boxes)
+    print(_classes)

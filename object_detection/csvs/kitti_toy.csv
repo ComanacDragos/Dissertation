@@ -1,0 +1,17 @@
+image,label,stage
+images\000000.png,labels\000000.txt,val
+images\000001.png,labels\000001.txt,train
+images\000002.png,labels\000002.txt,train
+images\000003.png,labels\000003.txt,train
+images\000004.png,labels\000004.txt,train
+images\000005.png,labels\000005.txt,train
+images\000006.png,labels\000006.txt,train
+images\000007.png,labels\000007.txt,val
+images\000008.png,labels\000008.txt,train
+images\000009.png,labels\000009.txt,train
+images\000010.png,labels\000010.txt,train
+images\000011.png,labels\000011.txt,val
+images\000012.png,labels\000012.txt,train
+images\000013.png,labels\000013.txt,train
+images\000014.png,labels\000014.txt,train
+images\000015.png,labels\000015.txt,val
