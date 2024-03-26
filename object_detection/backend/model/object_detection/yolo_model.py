@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import Reshape
 
-from backend.enums import LabelType, OutputType
+from backend.enums import LabelType, OutputType, ObjectDetectionOutputType
 from backend.loss.yolo_loss import create_cell_grid
 from backend.model.softmax import softmax
 from backend.utils import iou
@@ -143,9 +143,14 @@ class YOLOPostprocessing:
             OutputType.COORDINATES: boxes,
             OutputType.CLASS_PROBABILITIES: classes
         }
+
+        outputs = {
+            ObjectDetectionOutputType.BEFORE_FILTERING: processed_outputs
+        }
         if self.box_filter:
-            processed_outputs = self.box_filter(processed_outputs)
-        return processed_outputs
+            filtered_outputs = self.box_filter(processed_outputs)
+            outputs[ObjectDetectionOutputType.AFTER_FILTERING] = filtered_outputs
+        return outputs
 
 
 class YOLOHead:

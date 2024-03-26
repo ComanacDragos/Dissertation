@@ -3,10 +3,11 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from overrides import overrides
 from tensorflow.keras.callbacks import Callback
 
+from backend.enums import DataType, OutputType, LabelType, ObjectDetectionOutputType
 from backend.trainer.state import TrainState, EvalState
-from backend.enums import DataType, LabelType, OutputType
 
 
 def draw_boxes(img, text_labels, boxes):
@@ -16,8 +17,8 @@ def draw_boxes(img, text_labels, boxes):
     for text, box in zip(text_labels, boxes):
         xmin = max(box[0], 0)
         ymin = max(box[1], 0)
-        xmax = min(box[0] + box[2], img_width)
-        ymax = min(box[1] + box[3], img_height)
+        xmax = min(box[2], img_width)
+        ymax = min(box[3], img_height)
 
         font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -47,16 +48,19 @@ class BoxImagePlotter(Callback):
         self.id_to_class = {i: label for i, label in enumerate(labels)}
         self.output_path = Path(output_path) / "image_plots"
 
+    @overrides
     def on_train_batch_end(self, batch, logs: TrainState = None):
         if (batch + 1) % self.plot_frequency != 0:
             return
         self._plot_images(self.output_path / "train", batch, logs)
 
+    @overrides
     def on_test_batch_end(self, batch, logs: EvalState = None):
         if (batch + 1) % self.plot_frequency != 0:
             return
         self._plot_images(self.output_path / "eval", batch, logs)
 
+    @overrides
     def on_predict_batch_end(self, batch, logs: EvalState = None):
         if (batch + 1) % self.plot_frequency != 0:
             return
@@ -65,20 +69,43 @@ class BoxImagePlotter(Callback):
     def _plot_images(self, path, batch, logs):
         path /= f"epoch_{logs.epoch}_step_{batch}"
         os.makedirs(path, exist_ok=True)
-        identifiers = logs.inputs[DataType.IDENTIFIER]
+        identifiers = [Path(identifier).name for identifier in logs.inputs[DataType.IDENTIFIER]]
         images = logs.inputs[DataType.IMAGE]
-        # TODO continue ...
-        #
-        # labels = logs.inputs[DataType.LABEL]
-        # gt_classes, gt_boxes = labels[LabelType.CLASS], labels[LabelType.COORDINATES]
-        #
-        # gt_texts = [self.id_to_class[cls] for cls in gt_classes]
-        #
-        # # gt_images = [draw_boxes() for img, text, boxes]
-        #
-        # outputs = logs.predictions
-        # pred_boxes = outputs[OutputType.COORDINATES]
-        # pred_classes = outputs[OutputType.CLASS_LABEL]
-        # pred_probs = outputs[OutputType.CLASS_PROBABILITIES]
-        #
 
+        labels = logs.inputs[DataType.LABEL]
+
+        gt_texts = [
+            [self.id_to_class[np.argmax(one_hot_encoding, axis=-1)] for one_hot_encoding in label[LabelType.CLASS]]
+            for label in labels
+        ]
+
+        gt_boxes = [np.asarray(label[LabelType.COORDINATES], dtype=int) for label in labels]
+
+        gt_images = [draw_boxes(img, text, boxes)
+                     for img, text, boxes in zip(images, gt_texts, gt_boxes)
+                     ]
+
+        if ObjectDetectionOutputType.AFTER_FILTERING in logs.predictions:
+            outputs = logs.predictions[ObjectDetectionOutputType.AFTER_FILTERING]
+        else:
+            outputs = logs.predictions[ObjectDetectionOutputType.BEFORE_FILTERING]
+        pred_boxes = outputs[OutputType.COORDINATES]
+        pred_classes = outputs[OutputType.CLASS_LABEL]
+        pred_probs = outputs[OutputType.CLASS_PROBABILITIES]
+
+        pred_texts = [
+            [f"{self.id_to_class[cls]}: {str(round(prob, 2))}" for cls, prob in zip(pred_classes_img, pred_probs_img)]
+            for pred_classes_img, pred_probs_img in zip(pred_classes, pred_probs)
+        ]
+
+        pred_images = [draw_boxes(img, text, np.asarray(boxes, dtype=int))
+                       for img, text, boxes in zip(images, pred_texts, pred_boxes)
+                       ]
+
+        final_images = [
+            np.concatenate([gt_image, np.zeros((20, *gt_image.shape[1:]), dtype=int), pred_image])
+            for gt_image, pred_image in zip(gt_images, pred_images)
+        ]
+
+        for identifier, image in zip(identifiers, final_images):
+            cv2.imwrite(str(path / identifier), image)

@@ -4,7 +4,7 @@ from backend.callbacks import LossLogger, ModelSaver, BoxImagePlotter
 
 
 class CallbacksConfig:
-    PLOT_FREQUENCY = 10
+    PLOT_FREQUENCY = 1
 
     @staticmethod
     def build(output_path, labels):

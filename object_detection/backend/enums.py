@@ -23,3 +23,8 @@ class OutputType(Enum):
     COORDINATES = auto()
     CLASS_PROBABILITIES = auto()
     CLASS_LABEL = auto()
+
+
+class ObjectDetectionOutputType(Enum):
+    BEFORE_FILTERING = auto()
+    AFTER_FILTERING = auto()
