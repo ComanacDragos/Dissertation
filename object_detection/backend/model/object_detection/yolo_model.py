@@ -139,17 +139,21 @@ class YOLOPostprocessing:
 
         classes = self._flatten(classes)
 
+        best_classes = tf.reduce_max(classes, axis=-1)
+        best_classes_prob = tf.argmax(classes, axis=-1)
+
         processed_outputs = {
-            OutputType.COORDINATES: boxes,
-            OutputType.CLASS_PROBABILITIES: classes
+            OutputType.COORDINATES: boxes.numpy(),
+            OutputType.CLASS_PROBABILITIES: best_classes_prob.numpy(),
+            OutputType.CLASS_LABEL: best_classes.numpy(),
+            OutputType.ALL_CLASS_PROBABILITIES: classes.numpy()
         }
 
         outputs = {
             ObjectDetectionOutputType.BEFORE_FILTERING: processed_outputs
         }
         if self.box_filter:
-            filtered_outputs = self.box_filter(processed_outputs)
-            outputs[ObjectDetectionOutputType.AFTER_FILTERING] = filtered_outputs
+            outputs[ObjectDetectionOutputType.AFTER_FILTERING] = self.box_filter(processed_outputs)
         return outputs
 
 

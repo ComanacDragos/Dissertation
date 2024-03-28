@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import numpy as np
 from backend.enums import OutputType
 
 
@@ -12,7 +12,7 @@ class BoxFilter:
         self.batch_size = batch_size
 
     def __call__(self, outputs):
-        class_probs = outputs[OutputType.CLASS_PROBABILITIES]
+        class_probs = outputs[OutputType.ALL_CLASS_PROBABILITIES]
         boxes = outputs[OutputType.COORDINATES]
 
         nms_boxes = tf.expand_dims(boxes, axis=2)
@@ -27,5 +27,5 @@ class BoxFilter:
         return {
             OutputType.COORDINATES: filter_tensor(nms_boxes, nms_valid),
             OutputType.CLASS_PROBABILITIES: filter_tensor(nms_scores, nms_valid),
-            OutputType.CLASS_LABEL: filter_tensor(nms_classes, nms_valid)
+            OutputType.CLASS_LABEL: filter_tensor(nms_classes, nms_valid),
         }

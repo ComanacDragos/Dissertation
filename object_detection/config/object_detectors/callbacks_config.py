@@ -1,10 +1,10 @@
 from tensorflow.keras.callbacks import CallbackList
 
-from backend.callbacks import LossLogger, ModelSaver, BoxImagePlotter
+from backend.callbacks import *
 
 
 class CallbacksConfig:
-    PLOT_FREQUENCY = 1
+    PLOT_FREQUENCY = 10
 
     @staticmethod
     def build(output_path, labels):
@@ -16,4 +16,8 @@ class CallbacksConfig:
                 plot_frequency=CallbacksConfig.PLOT_FREQUENCY,
                 labels=labels
             ),
+            BoxEvaluation(
+                output_path,
+                labels=labels
+            )
         ])
