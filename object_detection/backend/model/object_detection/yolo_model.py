@@ -139,8 +139,8 @@ class YOLOPostprocessing:
 
         classes = self._flatten(classes)
 
-        best_classes = tf.reduce_max(classes, axis=-1)
-        best_classes_prob = tf.argmax(classes, axis=-1)
+        best_classes_prob = tf.reduce_max(classes, axis=-1)
+        best_classes = tf.argmax(classes, axis=-1)
 
         processed_outputs = {
             OutputType.COORDINATES: boxes.numpy(),

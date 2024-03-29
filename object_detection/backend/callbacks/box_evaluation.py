@@ -15,6 +15,7 @@ class BoxEvaluation(Callback):
 
         self.logs = None
         self.metrics = metrics
+        self.history = {'epoch': []}
 
     @overrides
     def on_test_begin(self, logs: EvalState = None):
@@ -46,4 +47,11 @@ class BoxEvaluation(Callback):
 
     @overrides
     def on_test_end(self, logs: EvalState = None):
-        a = 0
+        self.history['epoch'].append(logs.epoch)
+
+        for metric_name, metric in self.metrics.items():
+            result = metric(self.logs)
+            if metric_name in self.history:
+                self.history[metric_name].append(result)
+            else:
+                self.history[metric_name] = [result]
