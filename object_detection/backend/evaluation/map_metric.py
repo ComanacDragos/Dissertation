@@ -1,6 +1,9 @@
-from backend.enums import DataType, LabelType, OutputType
-from .from_mmdet.mean_ap import eval_map
 import numpy as np
+
+from backend.enums import LabelType, OutputType
+from .from_mmdet.mean_ap import eval_map
+from collections import OrderedDict
+
 
 class MeanAP:
     def __init__(self, labels, iou_threshold, scale_ranges=None):
@@ -12,8 +15,8 @@ class MeanAP:
         # prepare gts
         annotations = [
             {
-                'bboxes': gt[LabelType.COORDINATES],
-                'labels': np.argmax(gt[LabelType.CLASS], axis=-1) if len(gt[LabelType.CLASS]) > 0 else np.zeros((0, 4))
+                'bboxes': gt[LabelType.COORDINATES] if len(gt[LabelType.COORDINATES]) > 0 else np.zeros((0, 4)),
+                'labels': np.argmax(gt[LabelType.CLASS], axis=-1) if len(gt[LabelType.CLASS]) > 0 else np.zeros((0,))
             }
             for gt in logs['labels']
         ]
@@ -28,7 +31,7 @@ class MeanAP:
                 det.append(boxes[classes == cls_id])
             det_results.append(det)
 
-        return eval_map(
+        mAP, aps = eval_map(
             det_results,
             annotations,
             scale_ranges=self.scale_ranges,
@@ -36,5 +39,10 @@ class MeanAP:
             labels=self.labels
         )
 
+        metrics = OrderedDict()
+        metrics['mAP'] = mAP
 
+        for i, label in enumerate(self.labels):
+            metrics[f'{label}_AP'] = aps[i]['ap']
 
+        return metrics

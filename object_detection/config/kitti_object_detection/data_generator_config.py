@@ -6,8 +6,8 @@ from backend.enums import Stage, DataType
 
 class KittiDataGeneratorConfig:
     ROOT = r"C:\Users\Dragos\datasets\KITTI"
-    CSV_PATH = "csvs/kitti_toy_all_eval.csv"
-    BATCH_SIZE = 16
+    CSV_PATH = "csvs/kitti_toy.csv"
+    BATCH_SIZE = 1
     CLASS_MAPPING = {
         "Pedestrian": "Pedestrian",
         "Truck": "Truck",

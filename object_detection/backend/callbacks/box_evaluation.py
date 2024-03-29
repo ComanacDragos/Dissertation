@@ -1,9 +1,13 @@
+import os
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from overrides import overrides
 from tensorflow.keras.callbacks import Callback
 
-from backend.enums import DataType, ObjectDetectionOutputType, OutputType, LabelType
+from backend.enums import DataType, ObjectDetectionOutputType, OutputType
 from backend.trainer.state import EvalState
 
 
@@ -12,6 +16,7 @@ class BoxEvaluation(Callback):
         super().__init__()
         self.id_to_class = {i: label for i, label in enumerate(labels)}
         self.output_path = Path(output_path) / "evaluation"
+        os.makedirs(self.output_path, exist_ok=True)
 
         self.logs = None
         self.metrics = metrics
@@ -30,7 +35,7 @@ class BoxEvaluation(Callback):
         self.logs["identifiers"] += logs.inputs[DataType.IDENTIFIER]
         self.logs["labels"] += logs.inputs[DataType.LABEL]
 
-        predictions = logs.predictions[ObjectDetectionOutputType.BEFORE_FILTERING]
+        predictions = logs.predictions[ObjectDetectionOutputType.AFTER_FILTERING]
 
         per_image_predictions = [
             {
@@ -51,7 +56,63 @@ class BoxEvaluation(Callback):
 
         for metric_name, metric in self.metrics.items():
             result = metric(self.logs)
-            if metric_name in self.history:
-                self.history[metric_name].append(result)
+            if metric_name not in self.history:
+                self.history[metric_name] = {
+                    k: [v] for k, v in result.items()
+                }
             else:
-                self.history[metric_name] = [result]
+                for k, v in result.items():
+                    self.history[metric_name][k].append(v)
+
+            metric_history = self.history[metric_name]
+
+            pd.DataFrame.from_dict({
+                'epoch': self.history['epoch'],
+                **metric_history
+            }).to_csv(self.output_path / f"{metric_name}.csv", index=False)
+
+            cols = 2
+            rows = len(metric_history) // 2
+            if len(self.metrics) % cols > 0:
+                rows += 1
+            epochs = self.history['epoch']
+            plt.figure(figsize=(10, 10))
+            for i, (sub_metric_name, metric_history) in enumerate(metric_history.items(), start=1):
+                plt.subplot(rows, cols, i)
+                plt.title(sub_metric_name)
+                plt.xlabel('epoch')
+
+                not_none_values = [x for x in metric_history if x]
+
+                if len(not_none_values) == 0:
+                    continue
+
+                min_value, max_value = min(not_none_values), max(not_none_values)
+                min_epoch, max_epoch = epochs[metric_history.index(min_value)], epochs[metric_history.index(max_value)]
+
+                plt.plot(epochs, metric_history)
+
+                plt.axhline(min_value, linestyle='--', color="blue")
+                plt.axvline(min_epoch, linestyle='--', color="blue")
+
+                plt.axhline(max_value, linestyle='--', color="red")
+                plt.axvline(max_epoch, linestyle='--', color="red")
+
+                ticks = [0.] + list(np.linspace(0.2, 1, 5))
+
+                min_max_values = np.asarray([min_value, max_value])
+
+                filtered_ticks = []
+                for tick in ticks:
+                    if np.all(np.abs(min_max_values - tick) > 0.11):
+                        filtered_ticks.append(tick)
+
+                filtered_ticks = sorted(filtered_ticks + [min_value, max_value])
+
+                plt.xticks(sorted([epochs[0], min_epoch, max_epoch, epochs[-1]]))
+                plt.yticks(filtered_ticks)
+
+            plt.tight_layout()
+            plt.savefig(self.output_path / f"{metric_name}_history.png")
+            plt.clf()
+            plt.close()
