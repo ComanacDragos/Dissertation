@@ -2,8 +2,8 @@ from backend.model.object_detection.box_filter import BoxFilter
 
 
 class BoxFilterConfig:
-    MIN_OBJ_PROB = 0.5
-    MIN_CLASS_PROB = 0.5
+    MIN_OBJ_PROB = 0.2
+    MIN_CLASS_PROB = 0.1
     NMS_IOU_THRESHOLD = 0.5
 
     @staticmethod

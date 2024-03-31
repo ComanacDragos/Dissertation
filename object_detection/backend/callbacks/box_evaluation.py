@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 import pandas as pd
 from overrides import overrides
@@ -71,48 +72,70 @@ class BoxEvaluation(Callback):
                 **metric_history
             }).to_csv(self.output_path / f"{metric_name}.csv", index=False)
 
-            cols = 2
-            rows = len(metric_history) // 2
-            if len(self.metrics) % cols > 0:
-                rows += 1
-            epochs = self.history['epoch']
-            plt.figure(figsize=(10, 10))
-            for i, (sub_metric_name, metric_history) in enumerate(metric_history.items(), start=1):
-                plt.subplot(rows, cols, i)
-                plt.title(sub_metric_name)
-                plt.xlabel('epoch')
+            self._plot_history(metric_name, metric_history)
+            self._plot_overview(logs.epoch, metric_name, result)
 
-                not_none_values = [x for x in metric_history if x]
+    def _plot_overview(self, epoch, metric_name, results):
+        output_path = self.output_path / "epoch_overview"
+        os.makedirs(output_path, exist_ok=True)
 
-                if len(not_none_values) == 0:
-                    continue
+        results = results.items()
+        labels = [x[0] for x in results]
+        values = [x[1] for x in results]
 
-                min_value, max_value = min(not_none_values), max(not_none_values)
-                min_epoch, max_epoch = epochs[metric_history.index(min_value)], epochs[metric_history.index(max_value)]
+        plt.figure(figsize=(15, 5))
+        sns.barplot({
+            'labels': labels,
+            'values': values
+        }, y='labels', x='values', orient='h')
+        plt.xticks([0.0] + list(np.linspace(0.1, 1, 10)))
+        plt.savefig(output_path / f"epoch_{epoch}_{metric_name}_overview.png")
+        plt.clf()
+        plt.close()
 
-                plt.plot(epochs, metric_history)
+    def _plot_history(self, metric_name, metric_history):
+        cols = 2
+        rows = len(metric_history) // 2
+        if len(self.metrics) % cols > 0:
+            rows += 1
+        epochs = self.history['epoch']
+        plt.figure(figsize=(10, 10))
+        for i, (sub_metric_name, metric_history) in enumerate(metric_history.items(), start=1):
+            plt.subplot(rows, cols, i)
+            plt.title(sub_metric_name)
+            plt.xlabel('epoch')
 
-                plt.axhline(min_value, linestyle='--', color="blue")
-                plt.axvline(min_epoch, linestyle='--', color="blue")
+            not_none_values = [x for x in metric_history if x]
 
-                plt.axhline(max_value, linestyle='--', color="red")
-                plt.axvline(max_epoch, linestyle='--', color="red")
+            if len(not_none_values) == 0:
+                continue
 
-                ticks = [0.] + list(np.linspace(0.2, 1, 5))
+            min_value, max_value = min(not_none_values), max(not_none_values)
+            min_epoch, max_epoch = epochs[metric_history.index(min_value)], epochs[metric_history.index(max_value)]
 
-                min_max_values = np.asarray([min_value, max_value])
+            plt.plot(epochs, metric_history)
 
-                filtered_ticks = []
-                for tick in ticks:
-                    if np.all(np.abs(min_max_values - tick) > 0.11):
-                        filtered_ticks.append(tick)
+            plt.axhline(min_value, linestyle='--', color="blue")
+            plt.axvline(min_epoch, linestyle='--', color="blue")
 
-                filtered_ticks = sorted(filtered_ticks + [min_value, max_value])
+            plt.axhline(max_value, linestyle='--', color="red")
+            plt.axvline(max_epoch, linestyle='--', color="red")
 
-                plt.xticks(sorted([epochs[0], min_epoch, max_epoch, epochs[-1]]))
-                plt.yticks(filtered_ticks)
+            ticks = [0.] + list(np.linspace(0.2, 1, 5))
 
-            plt.tight_layout()
-            plt.savefig(self.output_path / f"{metric_name}_history.png")
-            plt.clf()
-            plt.close()
+            min_max_values = np.asarray([min_value, max_value])
+
+            filtered_ticks = []
+            for tick in ticks:
+                if np.all(np.abs(min_max_values - tick) > 0.11):
+                    filtered_ticks.append(tick)
+
+            filtered_ticks = sorted(filtered_ticks + [min_value, max_value])
+
+            plt.xticks(sorted([epochs[0], min_epoch, max_epoch, epochs[-1]]))
+            plt.yticks(filtered_ticks)
+
+        plt.tight_layout()
+        plt.savefig(self.output_path / f"{metric_name}_history.png")
+        plt.clf()
+        plt.close()

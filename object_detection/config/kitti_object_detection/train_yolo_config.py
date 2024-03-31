@@ -17,7 +17,7 @@ from data_generator_config import KittiDataGeneratorConfig
 class YOLOTrainerConfig:
     EXPERIMENT = Path('outputs/test_train')
 
-    EPOCHS = 10
+    EPOCHS = 100
     START_LR = 1e-4
 
     ANCHORS = open_json("scripts/kitti_anchors.json")["3"]
