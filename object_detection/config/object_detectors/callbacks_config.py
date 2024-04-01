@@ -10,7 +10,6 @@ class CallbacksConfig:
     def build(output_path, labels):
         return CallbackList([
             LossLogger(output_path, plot_frequency=CallbacksConfig.PLOT_FREQUENCY),
-            ModelSaver(output_path),
             BoxImagePlotter(
                 output_path,
                 plot_frequency=CallbacksConfig.PLOT_FREQUENCY,
@@ -22,5 +21,6 @@ class CallbacksConfig:
                 metrics={
                     'mAP': MeanAP(labels, iou_threshold=0.5)
                 }
-            )
+            ),
+            ModelSaver(output_path, follow_metric='mAP'),
         ])
