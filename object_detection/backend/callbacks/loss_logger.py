@@ -3,11 +3,12 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import mpl_toolkits.axisartist as AA
+import numpy as np
 import pandas as pd
+from cv2 import imwrite
 from mpl_toolkits.axes_grid1 import host_subplot
 from tensorflow.keras.callbacks import Callback
-import numpy as np
-from cv2 import imwrite
+
 from backend.trainer.state import TrainState, EvalState
 
 
@@ -31,6 +32,12 @@ class LossLogger(Callback):
 
         self.train_loss_history = {}
         self.eval_loss_history = {}
+
+        self.mean_loss_history = {
+            'epoch': [],
+            'train_loss': [],
+            'eval_loss': [],
+        }
 
     def on_train_batch_end(self, batch, logs: TrainState = None):
         self.train_epoch_history.append(logs.epoch)
@@ -86,6 +93,39 @@ class LossLogger(Callback):
             self.eval_csv_path, index=False,
             float_format=lambda x: round(x, 9)
         )
+
+    @staticmethod
+    def _get_values_for_epoch(target_epoch, epochs, values):
+        return [value for epoch, value in zip(epochs, values) if epoch == target_epoch]
+
+    def on_epoch_end(self, epoch, logs=None):
+        self.mean_loss_history['epoch'].append(epoch)
+        self.mean_loss_history['train_loss'].append(np.mean(
+            self._get_values_for_epoch(
+                epoch,
+                self.train_epoch_history,
+                self.train_loss_history['train_loss']
+            )
+        ))
+        self.mean_loss_history['eval_loss'].append(np.mean(
+            self._get_values_for_epoch(
+                epoch,
+                self.eval_epoch_history,
+                self.eval_loss_history['eval_loss']
+            )
+        ))
+
+        pd.DataFrame.from_dict(self.mean_loss_history).to_csv(self.epoch_mean_csv_path, index=False)
+
+        plt.plot(self.mean_loss_history['epoch'], self.mean_loss_history['train_loss'], label="train")
+        plt.plot(self.mean_loss_history['epoch'], self.mean_loss_history['eval_loss'], label="eval")
+        plt.legend()
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Mean losses over the epochs")
+        plt.savefig(self.output_path / "losses_per_epoch.png")
+        plt.clf()
+        plt.close()
 
     def plot_eval_loss(self, loss_dict, epochs, name):
         steps = list(range(len(epochs)))
@@ -154,12 +194,12 @@ class LossLogger(Callback):
 
         rows = len(plots) // 2 + len(plots) % 2
         cols = 2
-        final_plot = np.ones((height*rows, width*cols, 3), dtype=int) * 255
+        final_plot = np.ones((height * rows, width * cols, 3), dtype=int) * 255
 
         for i, plot in enumerate(plots):
             row = i // cols
             col = i % cols
 
-            final_plot[row * height: (row+1) * height, col*width:(col+1) * width, :] = plot
+            final_plot[row * height: (row + 1) * height, col * width:(col + 1) * width, :] = plot
 
         imwrite(str(self.output_path / name), final_plot)
