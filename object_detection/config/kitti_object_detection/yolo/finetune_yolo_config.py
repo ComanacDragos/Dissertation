@@ -18,7 +18,7 @@ from config.kitti_object_detection.yolo.common_yolo_config import YOLOCommonConf
 class YOLOFinetuneConfig:
     EXPERIMENT = Path('outputs/test_finetune')
 
-    EPOCHS = 100
+    EPOCHS = 2
     START_LR = 1e-5
 
     PATH_TO_WEIGHTS = "outputs/test_train/checkpoints/model_0_0.0_mAP.h5"
@@ -26,35 +26,33 @@ class YOLOFinetuneConfig:
 
     @staticmethod
     def build():
-        input_shape = KittiDataGeneratorConfig.INPUT_SHAPE
-        no_classes = len(set(KittiDataGeneratorConfig.CLASS_MAPPING.keys()))
         return GenericTrainer(
             train_dataset=KittiDataGeneratorConfig.build(Stage.TRAIN),
             val_dataset=KittiDataGeneratorConfig.build(Stage.VAL),
             loss=YOLOLossConfig.build(
                 anchors=YOLOCommonConfig.ANCHORS,
-                no_classes=no_classes,
+                no_classes=len(KittiDataGeneratorConfig.LABELS),
                 grid_size=YOLOCommonConfig.GRID_SIZE
             ),
             optimizer=Adam(learning_rate=YOLOFinetuneConfig.START_LR),
             callbacks=CallbacksConfig.build(YOLOFinetuneConfig.EXPERIMENT, KittiDataGeneratorConfig.LABELS),
             model=YOLOModelConfig.build(
-                input_shape=input_shape,
+                input_shape=KittiDataGeneratorConfig.INPUT_SHAPE,
                 grid_size=YOLOCommonConfig.GRID_SIZE,
                 no_anchors=len(YOLOCommonConfig.ANCHORS),
-                no_classes=no_classes,
+                no_classes=len(KittiDataGeneratorConfig.LABELS),
                 trainable_backbone=True,
                 path_to_weights=YOLOFinetuneConfig.PATH_TO_WEIGHTS
             ),
             preprocessor=YOLOPreprocessingConfig.build(
-                image_size=input_shape[:2],
+                image_size=KittiDataGeneratorConfig.INPUT_SHAPE[:2],
                 grid_size=YOLOCommonConfig.GRID_SIZE,
                 anchors=YOLOCommonConfig.ANCHORS,
-                no_classes=no_classes,
+                no_classes=len(KittiDataGeneratorConfig.LABELS),
                 max_boxes_per_image=KittiDataGeneratorConfig.MAX_BOXES_PER_IMAGE
             ),
             postprocessor=YOLOPostprocessingConfig.build(
-                image_size=input_shape[:2],
+                image_size=KittiDataGeneratorConfig.INPUT_SHAPE[:2],
                 grid_size=YOLOCommonConfig.GRID_SIZE,
                 anchors=YOLOCommonConfig.ANCHORS,
                 max_boxes_per_image=KittiDataGeneratorConfig.MAX_BOXES_PER_IMAGE,

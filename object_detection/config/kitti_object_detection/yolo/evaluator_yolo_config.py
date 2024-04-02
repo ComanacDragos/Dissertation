@@ -1,8 +1,6 @@
 import shutil
 from pathlib import Path
 
-from tensorflow.keras.optimizers import Adam
-
 from backend.enums import Stage
 from backend.trainer.generic_trainer import GenericTrainer
 from backend.utils import set_seed
@@ -14,11 +12,11 @@ from config.object_detectors.yolo.yolo_postprocessor_config import YOLOPostproce
 from config.object_detectors.yolo.yolo_preprocessor_config import YOLOPreprocessingConfig
 from config.kitti_object_detection.yolo.common_yolo_config import YOLOCommonConfig
 
-class YOLOTrainerConfig:
-    EXPERIMENT = Path('outputs/test_train')
 
-    EPOCHS = 100
-    START_LR = 1e-4
+class YOLOEvaluatorConfig:
+    EXPERIMENT = Path('outputs/test_eval')
+
+    PATH_TO_WEIGHTS = "outputs/test_train/checkpoints/model_0_0.0_mAP.h5"
 
     @staticmethod
     def build():
@@ -30,13 +28,15 @@ class YOLOTrainerConfig:
                 no_classes=len(KittiDataGeneratorConfig.LABELS),
                 grid_size=YOLOCommonConfig.GRID_SIZE
             ),
-            optimizer=Adam(learning_rate=YOLOTrainerConfig.START_LR),
-            callbacks=CallbacksConfig.build(YOLOTrainerConfig.EXPERIMENT, KittiDataGeneratorConfig.LABELS),
+            optimizer=None,
+            callbacks=CallbacksConfig.build(YOLOEvaluatorConfig.EXPERIMENT, KittiDataGeneratorConfig.LABELS),
             model=YOLOModelConfig.build(
                 input_shape=KittiDataGeneratorConfig.INPUT_SHAPE,
                 grid_size=YOLOCommonConfig.GRID_SIZE,
                 no_anchors=len(YOLOCommonConfig.ANCHORS),
-                no_classes=len(KittiDataGeneratorConfig.LABELS)
+                no_classes=len(KittiDataGeneratorConfig.LABELS),
+                trainable_backbone=True,
+                path_to_weights=YOLOEvaluatorConfig.PATH_TO_WEIGHTS
             ),
             preprocessor=YOLOPreprocessingConfig.build(
                 image_size=KittiDataGeneratorConfig.INPUT_SHAPE[:2],
@@ -52,11 +52,11 @@ class YOLOTrainerConfig:
                 max_boxes_per_image=KittiDataGeneratorConfig.MAX_BOXES_PER_IMAGE,
                 batch_size=KittiDataGeneratorConfig.BATCH_SIZE
             ),
-            epochs=YOLOTrainerConfig.EPOCHS
+            epochs=0
         )
 
 
 if __name__ == '__main__':
     set_seed(0)
-    shutil.copytree('config', YOLOTrainerConfig.EXPERIMENT / 'config', dirs_exist_ok=True)
-    YOLOTrainerConfig.build().train()
+    shutil.copytree('config', YOLOEvaluatorConfig.EXPERIMENT / 'config', dirs_exist_ok=True)
+    YOLOEvaluatorConfig.build().eval_loop(0)

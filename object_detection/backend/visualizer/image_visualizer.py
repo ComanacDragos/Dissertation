@@ -15,6 +15,8 @@ from pathlib import Path
 
 from backend.enums import Stage
 from backend.visualizer.object_detection_vis_data_generator import ObjectDetectionVisDataGenerator
+from backend.callbacks.box_image_plotter import draw_boxes
+from backend.enums import OutputType, ObjectDetectionOutputType
 
 matplotlib.use('TkAgg')
 
@@ -22,9 +24,10 @@ matplotlib.use('TkAgg')
 # main GUI
 class VisTool:
 
-    def __init__(self, data_info, output="outputs"):
+    def __init__(self, data_info, output="outputs", model=None):
         self.window = Tk()
         self.menubar = Menu(self.window)
+        self.model = model
 
         self.info = StringVar()
         self.info_label = Label(
@@ -475,22 +478,29 @@ class VisTool:
         self.img_name = name
         self.img = img
 
+        gt_img = None
         if self.data_info.has_anno and self.show_gts.get():
             objs = self.data_info.get_singleImg_gt(name)
-            img = self.draw_gt_boxes(img, objs)
+            texts = [obj[0] for obj in objs]
+            boxes = [[obj[1], obj[2], obj[1] + obj[3], obj[2] + obj[4]] for obj in objs]
+            gt_img = draw_boxes(img, texts, boxes)
 
-        # TODO: adapt for predictions also
-        # if self.data_info.results is not None and self.show_dets.get():
-        #     if self.data_info.mask is False:
-        #         dets = self.data_info.get_singleImg_dets(name)
-        #         img = self.draw_all_det_boxes(img, dets)
-        #     else:
-        #         dets = self.data_info.get_singleImg_dets(name).transpose(
-        #             (1, 0))
-        #         img = self.draw_all_det_boxes_masks(img, dets)
-        #
-        #     self.clear_add_listBox_obj()
+        predicted_img = None
+        if self.model:
+            outputs = self.model(img[None, ...])[ObjectDetectionOutputType.AFTER_FILTERING]
+            boxes = np.asarray(outputs[OutputType.COORDINATES][0], dtype=int)
+            pred_texts = [f"{self.data_info.labels[int(cls)]}: {str(round(prob, 2))}" for cls, prob in
+                 zip(outputs[OutputType.CLASS_LABEL][0], outputs[OutputType.CLASS_PROBABILITIES][0])]
 
+            predicted_img = draw_boxes(img, pred_texts, boxes)
+
+        if gt_img is not None and predicted_img is not None:
+            img = np.concatenate([gt_img, np.zeros((20, *gt_img.shape[1:])), predicted_img])
+            img = np.array(img, dtype=np.uint8)
+        elif gt_img is None:
+            img = predicted_img
+        else:
+            img = gt_img
         self.show_img = img
         img = Image.fromarray(img)
         img = self.scale_img(img)

@@ -3,15 +3,7 @@ from PIL import Image
 
 from backend.data_generator.object_detection_data_generator import ObjectDetectionDataGenerator
 from backend.enums import DataType, LabelType
-
-
-class aug_category:
-
-    def __init__(self, categories):
-        self.category = categories
-        self.combo_list = categories.copy()
-        self.combo_list.insert(0, 'All')
-        self.all = True
+from backend.visualizer.aug_category import aug_category
 
 
 class ObjectDetectionVisDataGenerator:
@@ -22,6 +14,7 @@ class ObjectDetectionVisDataGenerator:
         self.det_file = ''
         self.has_anno = True
         self.mask = False
+        self.labels = source_data_generator.labels
 
     def get_img_by_index(self, index):
         return Image.fromarray(self.source_data_generator[index][DataType.IMAGE][0])

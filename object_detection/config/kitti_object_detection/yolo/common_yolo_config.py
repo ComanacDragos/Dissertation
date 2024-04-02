@@ -13,4 +13,4 @@ class YOLOCommonConfig:
             104.9496088517907
         ]
     ]
-    GRID_SIZE = (6, 20)
+    GRID_SIZE = (12, 39)
