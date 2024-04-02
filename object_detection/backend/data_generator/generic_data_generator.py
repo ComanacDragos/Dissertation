@@ -6,7 +6,7 @@ import pandas as pd
 import tensorflow as tf
 
 from backend.enums import Stage, DataType
-from backend.utils import logger
+from backend.logger import logger
 
 
 class GenericDataGenerator(tf.keras.utils.Sequence):
@@ -15,8 +15,9 @@ class GenericDataGenerator(tf.keras.utils.Sequence):
         self.data = pd.read_csv(csv_path)
         if not stage == Stage.ALL:
             self.data = self.data[self.data['stage'] == stage.value]
-        logger.log(f"Loaded {csv_path} for {stage.value} - {len(self.data)} samples")
         self.batch_size = batch_size
+        logger.log(f"Loaded {csv_path} for {stage.value} - {len(self.data)} samples - bs: {batch_size} - len: {self.__len__()}")
+
         self.stage = stage
         self.shuffle = shuffle
         self.augmentations = augmentations

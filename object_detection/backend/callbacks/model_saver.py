@@ -1,7 +1,7 @@
 from tensorflow.keras.callbacks import Callback
 import os
 from backend.trainer.state import EvalState
-from backend.utils import logger
+from backend.logger import logger
 import pandas as pd
 
 

@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from backend.enums import DataType
 from backend.trainer.state import TrainState, EvalState
-from backend.utils import logger
+from backend.logger import logger
 
 
 class GenericTrainer:

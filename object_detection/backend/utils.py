@@ -8,18 +8,6 @@ import numpy as np
 import tensorflow as tf
 
 
-class Logger:
-    @staticmethod
-    def log(msg):
-        print(msg)
-
-    def __call__(self, msg):
-        self.log(msg)
-
-
-logger = Logger()
-
-
 def set_seed(seed):
     tf.random.set_seed(seed)
     random.seed(seed)

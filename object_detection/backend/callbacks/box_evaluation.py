@@ -10,6 +10,7 @@ from tensorflow.keras.callbacks import Callback
 
 from backend.enums import DataType, ObjectDetectionOutputType, OutputType
 from backend.trainer.state import EvalState
+from backend.logger import logger
 
 
 class BoxEvaluation(Callback):
@@ -56,6 +57,7 @@ class BoxEvaluation(Callback):
         self.history['epoch'].append(logs.epoch)
 
         for metric_name, metric in self.metrics.items():
+            logger.log(f"Computing {metric_name}...")
             result = metric(self.logs)
             if metric_name not in self.history:
                 self.history[metric_name] = {

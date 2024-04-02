@@ -3,7 +3,7 @@ from multiprocessing import Pool
 
 import numpy as np
 from terminaltables import AsciiTable
-from backend.utils import logger
+from backend.logger import logger
 from .bbox_overlaps import bbox_overlaps
 
 
