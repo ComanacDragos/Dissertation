@@ -13,4 +13,5 @@ class YOLOCommonConfig:
             104.9496088517907
         ]
     ]
-    GRID_SIZE = (12, 39)
+    GRID_SIZE = (6, 20) #(6, 20) #(12, 39)
+    BACKBONE_OUTPUTS = ('block_15_add',)

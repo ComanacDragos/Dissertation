@@ -4,7 +4,7 @@ from backend.callbacks import *
 
 
 class CallbacksConfig:
-    PLOT_FREQUENCY = 100
+    PLOT_FREQUENCY = 6
 
     @staticmethod
     def build(output_path, labels):

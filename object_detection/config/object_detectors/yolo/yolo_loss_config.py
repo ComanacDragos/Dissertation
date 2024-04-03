@@ -2,7 +2,7 @@ from backend.loss.yolo_loss import YOLOLoss
 
 
 class YOLOLossConfig:
-    L_COORD = 5.
+    L_COORD = 1.
     L_NOOBJ = 0.5
     L_CLASS = 3.
     L_OBJ = 2.

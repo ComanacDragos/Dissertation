@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from backend.model.generic_model import GenericBackbone
+from backend.model.generic_model import Sequential
 
 
 class MobilenetBackboneConfig:
@@ -15,7 +15,7 @@ class MobilenetBackboneConfig:
                                                  outputs],
                                         name="mobilenet")
         mobilenet.trainable = trainable
-        return GenericBackbone([preprocess, mobilenet])
+        return Sequential([preprocess, mobilenet])
 
 
 if __name__ == '__main__':

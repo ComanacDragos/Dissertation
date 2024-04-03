@@ -35,6 +35,7 @@ class YOLOEvaluatorConfig:
                 grid_size=YOLOCommonConfig.GRID_SIZE,
                 no_anchors=len(YOLOCommonConfig.ANCHORS),
                 no_classes=len(KittiDataGeneratorConfig.LABELS),
+                backbone_outputs=YOLOCommonConfig.BACKBONE_OUTPUTS,
                 trainable_backbone=True,
                 path_to_weights=YOLOEvaluatorConfig.PATH_TO_WEIGHTS
             ),

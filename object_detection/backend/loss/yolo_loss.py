@@ -35,7 +35,7 @@ class YOLOLoss(CustomLoss):
         self.no_classes = no_classes
         self.class_wt = np.ones(self.no_classes, dtype="float32")
 
-    def call(self, y_true, y_pred: tf.Tensor):
+    def __call__(self, y_true, y_pred: tf.Tensor):
         """
         Each anchor is composed of 8 values:
         0, 1: x, y position

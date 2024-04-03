@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from backend.model.generic_model import GenericBackbone
+from backend.model.generic_model import Sequential
 
 
 class Resnet50BackboneConfig:
@@ -8,4 +8,4 @@ class Resnet50BackboneConfig:
     def build(input_shape):
         preprocess = tf.keras.applications.resnet50.preprocess_input
         resnet = tf.keras.applications.resnet50.ResNet50(input_shape=input_shape, include_top=False)
-        return GenericBackbone([preprocess, resnet])
+        return Sequential([preprocess, resnet])

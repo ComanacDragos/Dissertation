@@ -18,7 +18,7 @@ class YOLOTrainerConfig:
     EXPERIMENT = Path('outputs/test_train')
 
     EPOCHS = 100
-    START_LR = 1e-4
+    START_LR = 4e-4
 
     @staticmethod
     def build():
@@ -36,7 +36,8 @@ class YOLOTrainerConfig:
                 input_shape=KittiDataGeneratorConfig.INPUT_SHAPE,
                 grid_size=YOLOCommonConfig.GRID_SIZE,
                 no_anchors=len(YOLOCommonConfig.ANCHORS),
-                no_classes=len(KittiDataGeneratorConfig.LABELS)
+                no_classes=len(KittiDataGeneratorConfig.LABELS),
+                backbone_outputs=YOLOCommonConfig.BACKBONE_OUTPUTS,
             ),
             preprocessor=YOLOPreprocessingConfig.build(
                 image_size=KittiDataGeneratorConfig.INPUT_SHAPE[:2],

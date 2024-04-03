@@ -74,7 +74,8 @@ class GenericTrainer:
 
             loss_value = loss_value.numpy()
             loss_dict = {loss_type: value.numpy() for loss_type, value in loss_dict.items()}
-            pbar.set_postfix_str(f"Train Loss: {round(loss_value, 4)}")
+            loss_dict_as_string = " ".join([f"{name}: {str(round(value, 4))}" for name, value in loss_dict.items()])
+            pbar.set_postfix_str(f"Train Loss: {str(round(loss_value, 4))} {loss_dict_as_string}")
 
             if self.postprocessor:
                 predictions = self.postprocessor(network_output)
@@ -108,7 +109,9 @@ class GenericTrainer:
 
             loss_value = loss_value.numpy()
             loss_dict = {loss_type: value.numpy() for loss_type, value in loss_dict.items()}
-            pbar.set_postfix_str(f"Eval Loss: {round(loss_value, 4)}")
+
+            loss_dict_as_string = " ".join([f"{name}: {str(round(value, 4))}" for name, value in loss_dict.items()])
+            pbar.set_postfix_str(f"Eval Loss: {str(round(loss_value, 4))} {loss_dict_as_string}")
 
             if self.postprocessor:
                 predictions = self.postprocessor(network_output)

@@ -6,20 +6,20 @@ from backend.enums import Stage, DataType
 
 class KittiDataGeneratorConfig:
     ROOT = r"C:\Users\Dragos\datasets\KITTI"
-    CSV_PATH = "csvs/kitti_toy.csv"
+    CSV_PATH = "csvs/kitti_overfit.csv"
     BATCH_SIZE = 1
     CLASS_MAPPING = {
-        "Pedestrian": "Pedestrian",
-        "Truck": "Truck",
-        "Car": "Car",
-        "Cyclist": "Cyclist",
+        "Pedestrian": "Person",
+        "Truck": "Vehicle",
+        "Car": "Vehicle",
+        # "Cyclist": "Cyclist",
         # "DontCare": "DontCare",
-        "Misc": "Misc",
-        "Van": "Van",
-        "Tram": "Tram",
-        "Person_sitting": "Person_sitting"
+        # "Misc": "Misc",
+        "Van": "Vehicle",
+        # "Tram": "Tram",
+        "Person_sitting": "Person"
     }
-    LABELS = sorted(CLASS_MAPPING.values())
+    LABELS = sorted(set(CLASS_MAPPING.values()))
     SHUFFLE = False
     IMAGE_SHAPE = (370, 1220, 3)
     INPUT_SHAPE = (370 // 2, 1220 // 2, 3)
