@@ -4,7 +4,7 @@ from backend.callbacks import *
 
 
 class CallbacksConfig:
-    PLOT_FREQUENCY = 6
+    PLOT_FREQUENCY = 100
 
     @staticmethod
     def build(output_path, labels):
@@ -19,8 +19,13 @@ class CallbacksConfig:
                 output_path,
                 labels=labels,
                 metrics={
-                    'mAP': MeanAP(labels, iou_threshold=0.5)
+                    'mAP': MeanAP(labels, iou_threshold=0.4)
                 }
             ),
             ModelSaver(output_path, follow_metric='mAP'),
+            CosineAnnealingScheduler(
+                n_min=1e-6,
+                n_max=1e-4,
+                T=10,
+            )
         ])

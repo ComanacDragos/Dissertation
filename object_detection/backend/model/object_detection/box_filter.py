@@ -3,8 +3,7 @@ from backend.enums import OutputType
 
 
 class BoxFilter:
-    def __init__(self, min_obj_prob, min_class_prob, nms_iou_threshold, max_boxes_per_image, batch_size):
-        self.min_obj_prob = min_obj_prob
+    def __init__(self, min_class_prob, nms_iou_threshold, max_boxes_per_image, batch_size):
         self.min_class_prob = min_class_prob
         self.nms_iou_threshold = nms_iou_threshold
         self.max_boxes_per_image = max_boxes_per_image

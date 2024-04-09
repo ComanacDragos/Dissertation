@@ -35,11 +35,19 @@ class GenericTrainer:
 
         for epoch in range(self.epochs):
             logger.log(f"\nTrain epoch {epoch}")
-            self.callbacks.on_epoch_begin(epoch)
+            self.callbacks.on_epoch_begin(epoch, logs=TrainState(
+                epoch=epoch,
+                model=self.model,
+                optimizer=self.optimizer
+            ))
             self.train_loop(epoch)
             logger.log(f"\nEval epoch {epoch}")
             self.eval_loop(epoch)
-            self.callbacks.on_epoch_end(epoch)
+            self.callbacks.on_epoch_end(epoch, logs=TrainState(
+                epoch=epoch,
+                model=self.model,
+                optimizer=self.optimizer
+            ))
 
     def compute_loss(self, inputs, network_output):
         labels = inputs[DataType.LABEL]

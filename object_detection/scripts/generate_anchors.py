@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 
 
 def generate_boxes():
-    output = "scripts/kitti_boxes.json"
+    output = "outputs/kitti_boxes_v2.json"
     KittiDataGeneratorConfig.BATCH_SIZE = 1  # 7481
     ds = KittiDataGeneratorConfig.build(Stage.ALL)
     all_boxes = []
@@ -22,8 +22,8 @@ def generate_boxes():
 
 
 def generate_anchors():
-    output = "scripts/kitti_anchors.json"
-    boxes = np.asarray(open_json("scripts/kitti_boxes.json"))
+    output = "scripts/kitti_anchors_v2.json"
+    boxes = np.asarray(open_json("outputs/kitti_boxes_v2.json"))
     top_left = boxes[:, :2]
     bottom_right = boxes[:, 2:]
     wh = bottom_right - top_left
@@ -38,5 +38,5 @@ def generate_anchors():
 
 
 if __name__ == '__main__':
-    # generate_boxes()
+    generate_boxes()
     generate_anchors()

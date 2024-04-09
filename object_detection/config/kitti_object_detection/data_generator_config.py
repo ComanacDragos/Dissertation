@@ -6,29 +6,30 @@ from backend.enums import Stage, DataType
 
 class KittiDataGeneratorConfig:
     ROOT = r"C:\Users\Dragos\datasets\KITTI"
-    CSV_PATH = "csvs/kitti_overfit.csv"
-    BATCH_SIZE = 1
+    CSV_PATH = "csvs/kitti.csv"
+    BATCH_SIZE = 16
     CLASS_MAPPING = {
         "Pedestrian": "Person",
-        "Truck": "Vehicle",
+        # "Truck": "Vehicle",
         "Car": "Vehicle",
         # "Cyclist": "Cyclist",
         # "DontCare": "DontCare",
         # "Misc": "Misc",
-        "Van": "Vehicle",
+        # "Van": "Vehicle",
         # "Tram": "Tram",
-        "Person_sitting": "Person"
+        # "Person_sitting": "Person"
     }
     LABELS = sorted(set(CLASS_MAPPING.values()))
-    SHUFFLE = False
-    IMAGE_SHAPE = (370, 1220, 3)
-    INPUT_SHAPE = (370 // 2, 1220 // 2, 3)
+    IMAGE_SHAPE = (320, 1024, 3)
+    INPUT_SHAPE = (320 // 2, 1024 // 2, 3)
     MAX_BOXES_PER_IMAGE = 21
 
     AUGMENTATIONS = A.Compose([
         A.Crop(
-            x_max=IMAGE_SHAPE[1],  # width
-            y_max=IMAGE_SHAPE[0],  # height
+            x_min=98,
+            y_min=50,
+            x_max=1220-98,  # width
+            y_max=370,  # height
         ),
         A.Resize(
             width=INPUT_SHAPE[1],
@@ -46,7 +47,6 @@ class KittiDataGeneratorConfig:
             stage=stage,
             class_mapping=KittiDataGeneratorConfig.CLASS_MAPPING,
             labels=KittiDataGeneratorConfig.LABELS,
-            shuffle=KittiDataGeneratorConfig.SHUFFLE,
             augmentations=KittiDataGeneratorConfig.AUGMENTATIONS
         )
 

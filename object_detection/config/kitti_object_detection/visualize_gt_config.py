@@ -13,7 +13,7 @@ class VisualizeGTConfig:
     def run():
         KittiDataGeneratorConfig.BATCH_SIZE = 1
         VisTool(
-            ObjectDetectionVisDataGenerator(KittiDataGeneratorConfig.build(Stage.TRAIN)),
+            ObjectDetectionVisDataGenerator(KittiDataGeneratorConfig.build(Stage.ALL)),
             output=VisualizeGTConfig.EXPERIMENT / "visualization"
         ).run()
 

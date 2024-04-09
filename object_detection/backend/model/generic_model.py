@@ -1,3 +1,6 @@
+from overrides import overrides
+
+
 class GenericModel:
     def __init__(self, backbone, head, neck=None):
         self.backbone = backbone
@@ -10,6 +13,16 @@ class GenericModel:
             x = self.neck(x)
         x = self.head(x)
         return x
+
+
+class MultiScaleModel(GenericModel):
+    @overrides
+    def __call__(self, inputs):
+        x = self.backbone(inputs)
+        if self.neck:
+            x = self.neck(x)
+        outputs = [self.head(_x) for _x in x]
+        return outputs
 
 
 class Sequential:

@@ -1,5 +1,5 @@
 from tensorflow.keras.initializers import HeNormal
-from tensorflow.keras.layers import ReLU, BatchNormalization, Dropout, Conv2D
+from tensorflow.keras.layers import ReLU, BatchNormalization, Dropout, Conv2D, DepthwiseConv2D
 from tensorflow.keras.regularizers import l1_l2
 
 L1 = 2e-6
@@ -11,7 +11,7 @@ def activation_generator():
 
 
 def dropout_generator():
-    return Dropout(rate=0.2)
+    return Dropout(rate=0.5)
 
 
 def batch_norm_generator():
@@ -29,10 +29,9 @@ def conv_generator(kernel_size, filters, strides=1, conv_type=Conv2D):
     )
 
 
-def depthwise_conv_generator(kernel_size, filters, strides=1, conv_type=Conv2D):
-    return lambda: conv_type(
+def depthwise_conv_generator(kernel_size, strides=1):
+    return lambda: DepthwiseConv2D(
         kernel_size=kernel_size,
-        filters=filters,
         padding='same',
         strides=strides,
         depthwise_initializer=HeNormal(),

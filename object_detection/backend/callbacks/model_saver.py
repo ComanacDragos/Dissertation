@@ -29,6 +29,6 @@ class ModelSaver(Callback):
                 logs.model.save(output_path, overwrite=True, options=self.options)
                 if self.prev_output_path:
                     os.remove(self.prev_output_path)
-                    self.prev_output_path = output_path
+                self.prev_output_path = output_path
             else:
                 logger.log(f"Model did not improve from {self.best_value}, current value: {metric_value}")

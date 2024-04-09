@@ -16,7 +16,7 @@ class SimpleNeckConfig:
             )
 
         return Sequential(blocks=[
-            block_generator(filters=128),
+            # block_generator(filters=128),
             block_generator(filters=64),
-            block_generator(filters=32),
+            # block_generator(filters=32),
         ])

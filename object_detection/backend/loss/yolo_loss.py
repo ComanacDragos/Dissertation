@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from backend.loss.custom_loss import CustomLoss
+from backend.loss.focal_loss import categorical_focal_crossentropy
 
 
 def create_cell_grid(grid_size, no_anchors):
@@ -17,7 +18,7 @@ def create_cell_grid(grid_size, no_anchors):
 
 
 class YOLOLoss(CustomLoss):
-    def __init__(self, anchors, no_classes, grid_size,
+    def __init__(self, anchors, no_classes, grid_size, max_width, max_height,
                  l_coord=5., l_noobj=0.5, l_class=3., l_obj=2.,
                  iou_threshold=0.6, enable_logs=False):
         super(YOLOLoss, self).__init__()
@@ -27,6 +28,9 @@ class YOLOLoss(CustomLoss):
         self.l_obj = l_obj
         self.iou_threshold = iou_threshold
 
+        self.max_width = max_width
+        self.max_height = max_height
+
         self.anchors = anchors
 
         self.cell_grid = create_cell_grid(grid_size, len(anchors))
@@ -35,7 +39,7 @@ class YOLOLoss(CustomLoss):
         self.no_classes = no_classes
         self.class_wt = np.ones(self.no_classes, dtype="float32")
 
-    def __call__(self, y_true, y_pred: tf.Tensor):
+    def call(self, y_true, y_pred: tf.Tensor):
         """
         Each anchor is composed of 8 values:
         0, 1: x, y position
@@ -62,6 +66,7 @@ class YOLOLoss(CustomLoss):
 
         ### adjust w and h
         pred_box_wh = tf.exp(y_pred[..., 2:4]) * self.anchors  # np.reshape(self.anchors, [1, 1, 1, self.nb_box, 2])
+        pred_box_wh = tf.clip_by_value(pred_box_wh, 0, [self.max_width, self.max_height])
 
         ### adjust confidence
         pred_box_conf = tf.sigmoid(y_pred[..., 4])
@@ -76,7 +81,7 @@ class YOLOLoss(CustomLoss):
         true_box_xy = y_true[..., 0:2]  # relative position to the containing cell
 
         ### adjust w and h
-        true_box_wh = y_true[..., 2:4]  # number of cells accross, horizontally and vertically
+        true_box_wh = y_true[..., 2:4]  # number of cells across, horizontally and vertically
 
         ### adjust confidence
         true_wh_half = true_box_wh / 2.
@@ -137,7 +142,7 @@ class YOLOLoss(CustomLoss):
         iou_scores = tf.truediv(intersect_areas, union_areas)
 
         best_ious = tf.reduce_max(iou_scores, axis=4)
-        conf_mask = conf_mask + tf.cast(best_ious < 0.6, tf.float32) * (1 - y_true[..., 4]) * self.l_noobj
+        conf_mask = conf_mask + tf.cast(best_ious < self.iou_threshold, tf.float32) * (1 - y_true[..., 4]) * self.l_noobj
         # penalize the confidence of the boxes, which are reponsible for corresponding ground truth box
         conf_mask = conf_mask + y_true[..., 4] * self.l_obj
 
@@ -158,7 +163,8 @@ class YOLOLoss(CustomLoss):
                           nb_coord_box + 1e-6) / 2.  # / IMAGE_SIZE
         loss_conf = tf.cast(tf.reduce_sum(tf.square(true_box_conf - pred_box_conf) * conf_mask),
                             tf.float32) / (nb_conf_box + 1e-6) / 2.
-        loss_class = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=true_box_class, logits=pred_box_class)
+        # loss_class = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=true_box_class, logits=pred_box_class)
+        loss_class = categorical_focal_crossentropy(true_box_class, pred_box_class, from_logits=True)
         loss_class = tf.reduce_sum(loss_class * class_mask) / (nb_class_box + 1e-6)
 
         loss = loss_xy + loss_wh + loss_conf + loss_class

@@ -129,6 +129,7 @@ class YOLOPostprocessing:
         xy = (K.sigmoid(output[..., :2]) + self.cell_grid) * self.cell_size
         wh = K.exp(output[..., 2:4]) * self.anchors
         boxes = tf.concat([xy - wh / 2, xy + wh / 2], axis=-1)
+        # boxes = tf.concat([xy - 20, xy + 20], axis=-1)
 
         conf_scores = K.sigmoid(output[..., 4:5])
         classes = conf_scores * softmax(output[..., 5:])

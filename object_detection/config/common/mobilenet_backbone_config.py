@@ -19,5 +19,5 @@ class MobilenetBackboneConfig:
 
 
 if __name__ == '__main__':
-    tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=(370//2, 1220//2, 3), include_top=False,
+    tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=(320 // 2, 1024 // 2, 3), include_top=False,
                                                    alpha=0.5).summary()

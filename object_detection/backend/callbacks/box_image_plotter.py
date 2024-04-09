@@ -50,19 +50,19 @@ class BoxImagePlotter(Callback):
 
     @overrides
     def on_train_batch_end(self, batch, logs: TrainState = None):
-        if (batch + 1) % self.plot_frequency != 0:
+        if (batch + 1) % self.plot_frequency != 0 and batch != 0:
             return
         self._plot_images(self.output_path / "train", batch, logs)
 
     @overrides
     def on_test_batch_end(self, batch, logs: EvalState = None):
-        if (batch + 1) % self.plot_frequency != 0:
+        if (batch + 1) % self.plot_frequency != 0 and batch != 0:
             return
         self._plot_images(self.output_path / "eval", batch, logs)
 
     @overrides
     def on_predict_batch_end(self, batch, logs: EvalState = None):
-        if (batch + 1) % self.plot_frequency != 0:
+        if (batch + 1) % self.plot_frequency != 0 and batch != 0:
             return
         self._plot_images(self.output_path / "predict", batch, logs)
 
@@ -108,4 +108,4 @@ class BoxImagePlotter(Callback):
         ]
 
         for identifier, image in zip(identifiers, final_images):
-            cv2.imwrite(str(path / identifier), image)
+            cv2.imwrite(str(path / identifier), cv2.cvtColor(np.asarray(image, dtype=np.uint8), cv2.COLOR_BGR2RGB))

@@ -127,6 +127,19 @@ class LossLogger(Callback):
         plt.clf()
         plt.close()
 
+        self.plot_loss_with_lr(
+            self.train_loss_history,
+            self.lr_history,
+            self.train_epoch_history,
+            'train_loss_per_step.png'
+        )
+
+        self.plot_eval_loss(
+            self.eval_loss_history,
+            self.eval_epoch_history,
+            'eval_loss_per_step.png'
+        )
+
     def plot_eval_loss(self, loss_dict, epochs, name):
         steps = list(range(len(epochs)))
         rows = len(loss_dict) // 2 + len(loss_dict) % 2
@@ -171,7 +184,7 @@ class LossLogger(Callback):
 
             steps = list(range(len(lrs)))
 
-            loss_plot.plot(steps, losses, label=label)
+            loss_plot.plot(steps, np.clip(losses, a_min=0, a_max=1000), label=label)
 
             learning_rate_plot.plot(steps, lrs, label='LR')
             loss_plot.legend()
@@ -179,7 +192,7 @@ class LossLogger(Callback):
 
             x_labels = [str(x) for x in set(epochs)]
             x_ticks = [0] + [i for i in range(1, len(epochs)) if epochs[i] != epochs[i - 1]]
-            plt.xticks(x_ticks, x_labels)
+            plt.xticks(x_ticks[::5], x_labels[::5])
 
             plt.draw()
             data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)

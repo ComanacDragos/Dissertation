@@ -2,7 +2,7 @@ from backend.loss.yolo_loss import YOLOLoss
 
 
 class YOLOLossConfig:
-    L_COORD = 1.
+    L_COORD = 5.
     L_NOOBJ = 0.5
     L_CLASS = 3.
     L_OBJ = 2.
@@ -10,7 +10,7 @@ class YOLOLossConfig:
     ENABLE_LOGS = False
 
     @staticmethod
-    def build(anchors, no_classes, grid_size):
+    def build(anchors, no_classes, grid_size, max_width, max_height):
         return YOLOLoss(
             anchors, no_classes, grid_size,
             l_coord=YOLOLossConfig.L_COORD,
@@ -18,5 +18,7 @@ class YOLOLossConfig:
             l_class=YOLOLossConfig.L_CLASS,
             l_obj=YOLOLossConfig.L_OBJ,
             iou_threshold=YOLOLossConfig.IOU_THRESHOLD,
-            enable_logs=YOLOLossConfig.ENABLE_LOGS
+            enable_logs=YOLOLossConfig.ENABLE_LOGS,
+            max_width=max_width,
+            max_height=max_height
         )
