@@ -16,9 +16,10 @@ from config.object_detectors.yolo.yolo_preprocessor_config import YOLOPreprocess
 
 
 class YOLOTrainerConfig:
-    EXPERIMENT = Path('outputs/yolo_train') # _v7_lr_t=10_dropout=50%
+    EXPERIMENT = Path('outputs/yolo_train_lr=3e-4_medium_neck_alpha=100%_loss_weights_to_one_coord=100') # _v7_lr_t=10_dropout=50%
+    # EXPERIMENT = Path('outputs/test_train')
 
-    EPOCHS = 10
+    EPOCHS = 50
     START_LR = 1e-4
 
     @staticmethod
@@ -33,7 +34,7 @@ class YOLOTrainerConfig:
                 max_height=KittiDataGeneratorConfig.INPUT_SHAPE[0],
                 max_width=KittiDataGeneratorConfig.INPUT_SHAPE[1]
             ),
-            optimizer=Adam(learning_rate=YOLOTrainerConfig.START_LR, epsilon=1e-8, decay=0.0, clipnorm=1.0),
+            optimizer=Adam(learning_rate=YOLOTrainerConfig.START_LR, epsilon=1e-8, decay=0.0),
             callbacks=CallbacksConfig.build(YOLOTrainerConfig.EXPERIMENT, KittiDataGeneratorConfig.LABELS),
             model=YOLOModelConfig.build(
                 input_shape=KittiDataGeneratorConfig.INPUT_SHAPE,
@@ -61,6 +62,6 @@ class YOLOTrainerConfig:
 
 
 if __name__ == '__main__':
-    # set_seed(0)
+    set_seed(0)
     shutil.copytree('config', YOLOTrainerConfig.EXPERIMENT / 'config', dirs_exist_ok=True)
     YOLOTrainerConfig.build().train()

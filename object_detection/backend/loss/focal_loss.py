@@ -19,6 +19,8 @@ def categorical_focal_crossentropy(
     output = y_pred / tf.math.reduce_sum(y_pred, axis=axis, keepdims=True)
     output = tf.clip_by_value(output, tf.keras.backend.epsilon(), 1.0 - tf.keras.backend.epsilon())
 
+    y_true = tf.cast(y_true, y_pred.dtype)
+
     # Calculate cross entropy
     cce = -y_true * tf.math.log(output)
 

@@ -12,7 +12,7 @@ from config.common.simple_neck_config import SimpleNeckConfig
 
 class YOLOModelConfig:
     CONV_GENERATOR = conv_generator
-    ALPHA = 0.5
+    ALPHA = 1.
 
     @staticmethod
     def build(input_shape, grid_size, no_anchors, no_classes, backbone_outputs=None, trainable_backbone=False, path_to_weights=None):

@@ -5,13 +5,14 @@ from tensorflow.keras.regularizers import l1_l2
 L1 = 2e-6
 L2 = 2e-5
 
+
 def activation_generator():
     # return LeakyReLU(alpha=0.1)
     return ReLU()
 
 
-def dropout_generator():
-    return Dropout(rate=0.5)
+def dropout_generator(rate=0.5):
+    return Dropout(rate=rate)
 
 
 def batch_norm_generator():

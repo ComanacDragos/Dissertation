@@ -164,7 +164,7 @@ class YOLOLoss(CustomLoss):
         loss_conf = tf.cast(tf.reduce_sum(tf.square(true_box_conf - pred_box_conf) * conf_mask),
                             tf.float32) / (nb_conf_box + 1e-6) / 2.
         # loss_class = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=true_box_class, logits=pred_box_class)
-        loss_class = categorical_focal_crossentropy(true_box_class, pred_box_class, from_logits=True)
+        loss_class = categorical_focal_crossentropy(y_true[..., 5:], pred_box_class, from_logits=True)
         loss_class = tf.reduce_sum(loss_class * class_mask) / (nb_class_box + 1e-6)
 
         loss = loss_xy + loss_wh + loss_conf + loss_class

@@ -163,7 +163,7 @@ class YOLOHead:
         self.grid_size = grid_size
         self.no_anchors = no_anchors
         self.no_classes = no_classes
-        self.conv_1x1 = conv_generator(3, no_anchors * (4 + 1 + no_classes))()
+        self.conv_1x1 = conv_generator(1, no_anchors * (4 + 1 + no_classes))()
 
     def __call__(self, inputs):
         x = self.conv_1x1(inputs)

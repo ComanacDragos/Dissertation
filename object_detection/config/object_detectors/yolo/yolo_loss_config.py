@@ -2,10 +2,10 @@ from backend.loss.yolo_loss import YOLOLoss
 
 
 class YOLOLossConfig:
-    L_COORD = 5.
-    L_NOOBJ = 0.5
-    L_CLASS = 3.
-    L_OBJ = 2.
+    L_COORD = 100.
+    L_NOOBJ = 1.
+    L_CLASS = 1.
+    L_OBJ = 1.
     IOU_THRESHOLD = 0.6
     ENABLE_LOGS = False
 

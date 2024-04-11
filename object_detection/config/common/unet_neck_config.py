@@ -22,7 +22,7 @@ class UnetNeckConfig:
                 conv_generator(3, filters, strides),
                 activation_generator=activation_generator,
                 batch_norm_generator=batch_norm_generator,
-                dropout_generator=dropout_generator,
+                # dropout_generator=dropout_generator,
             )
 
         def upsample_block_generator(filters, strides):
@@ -43,11 +43,11 @@ class UnetNeckConfig:
             x = inverted_block_generator(512, 128)(x)
             x = inverted_block_generator(512, 128)(x)
 
-            x = conv_block_generator(filters=64)(x)
-
-            x = inverted_block_generator(256, 64)(x)
-            x = inverted_block_generator(256, 64)(x)
-
+            # x = conv_block_generator(filters=64)(x)
+            #
+            # x = inverted_block_generator(256, 64)(x)
+            # x = inverted_block_generator(256, 64)(x)
+            #
             # x = conv_block_generator(filters=32)(x)
             #
             # x = inverted_block_generator(128, 32)(x)

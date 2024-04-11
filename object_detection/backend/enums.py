@@ -1,31 +1,31 @@
 from enum import Enum, auto
 
 
-class Stage(Enum):
+class Stage(str, Enum):
     TRAIN = 'train'
     VAL = 'val'
     ALL = 'all'
 
 
-class DataType(Enum):
-    IDENTIFIER = auto()
-    IMAGE = auto()
-    LABEL = auto()
-    PREDICTION = auto()
+class DataType(str, Enum):
+    IDENTIFIER = 'IDENTIFIER'
+    IMAGE = 'IMAGE'
+    LABEL = 'LABEL'
+    PREDICTION = 'PREDICTION'
 
 
-class LabelType(Enum):
-    COORDINATES = auto()
-    CLASS = auto()
+class LabelType(str, Enum):
+    COORDINATES = 'COORDINATES'
+    CLASS = 'CLASS'
 
 
-class OutputType(Enum):
-    COORDINATES = auto()
-    CLASS_PROBABILITIES = auto()
-    CLASS_LABEL = auto()
-    ALL_CLASS_PROBABILITIES = auto()
+class OutputType(str, Enum):
+    COORDINATES = 'COORDINATES'
+    CLASS_PROBABILITIES = 'CLASS_PROBABILITIES'
+    CLASS_LABEL = 'CLASS_LABEL'
+    ALL_CLASS_PROBABILITIES = 'ALL_CLASS_PROBABILITIES'
 
 
-class ObjectDetectionOutputType(Enum):
-    BEFORE_FILTERING = auto()
-    AFTER_FILTERING = auto()
+class ObjectDetectionOutputType(str, Enum):
+    BEFORE_FILTERING = 'BEFORE_FILTERING'
+    AFTER_FILTERING = 'AFTER_FILTERING'

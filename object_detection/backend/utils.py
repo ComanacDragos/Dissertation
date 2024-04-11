@@ -14,8 +14,15 @@ def set_seed(seed):
     np.random.seed(seed)
 
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
 def to_json(obj, file):
-    json_obj = json.dumps(obj, indent=4)
+    json_obj = json.dumps(obj, indent=4, cls=NumpyEncoder)
     with open(file, "w") as f:
         f.write(json_obj)
 

@@ -2,15 +2,16 @@ import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from overrides import overrides
 from tensorflow.keras.callbacks import Callback
 
 from backend.enums import DataType, ObjectDetectionOutputType, OutputType
-from backend.trainer.state import EvalState
 from backend.logger import logger
+from backend.trainer.state import EvalState
+from backend.utils import to_json
 
 
 class BoxEvaluation(Callback):
@@ -29,7 +30,7 @@ class BoxEvaluation(Callback):
         self.logs = {
             "identifiers": [],
             "labels": [],
-            "predictions": []
+            "predictions": [],
         }
 
     @overrides
@@ -76,6 +77,9 @@ class BoxEvaluation(Callback):
 
             self._plot_history(metric_name, metric_history)
             self._plot_overview(logs.epoch, metric_name, result)
+
+        os.makedirs(self.output_path / "dumps", exist_ok=True)
+        to_json(self.logs, self.output_path / "dumps" / f"logs_{logs.epoch}.json")
 
     def _plot_overview(self, epoch, metric_name, results):
         output_path = self.output_path / "epoch_overview"
