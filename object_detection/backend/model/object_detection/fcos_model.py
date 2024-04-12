@@ -11,10 +11,17 @@ INF = 2 ** 64
 
 class FCOSPreprocessing:
     def __init__(self, image_size, no_classes, strides, thresholds):
-        self.strides = strides  # e.g. (32, 16, 8)
-        self.thresholds = thresholds  # e.g (128, 64)
+        """
+
+        :param image_size: h, w
+        :param no_classes: int
+        :param strides:  e.g. (8, 16, 32)
+        :param thresholds: e.g (64, 128)
+        """
+        self.strides = strides
+        self.thresholds = [0, *thresholds, INF]
         self.no_classes = no_classes
-        self.image_size = np.asarray(image_size)  # h w
+        self.image_size = np.asarray(image_size)
 
     def decode_gt(self, ground_truth):
         """
@@ -25,14 +32,12 @@ class FCOSPreprocessing:
         """
         pass
 
-    def process_sample(self, classes, coordinates, stride, size_of_interest):
+    def _process_sample(self, classes, coordinates, stride, size_of_interest):
         grid_size = self.image_size // stride
-        classification_targets = np.zeros((*grid_size, self.no_classes))
-        centerness_targets = np.zeros((*grid_size, 1))
-
         H, W = grid_size
 
-        cells = np.stack(np.meshgrid(np.arange(H), np.arange(W), indexing='ij'), axis=-1)
+        h_cells, w_cells = np.arange(H), np.arange(W)
+        cells = np.stack(np.meshgrid(h_cells, w_cells, indexing='ij'), axis=-1)
         remapped_cells = cells * stride + stride // 2
 
         xs = remapped_cells[..., 1]
@@ -43,11 +48,11 @@ class FCOSPreprocessing:
         r = coordinates[:, 2] - xs[:, :, None]
         b = coordinates[:, 3] - ys[:, :, None]
 
-        regression_targets = np.stack([l, t, r, b], axis=2)
+        regression_targets_to_gt = np.stack([l, t, r, b], axis=2)
 
-        is_in_boxes = np.min(regression_targets, axis=2) > 0
+        is_in_boxes = np.min(regression_targets_to_gt, axis=2) > 0
 
-        max_reg_targets = np.max(regression_targets, axis=2)
+        max_reg_targets = np.max(regression_targets_to_gt, axis=2)
         coordinates_belong_to_scale = (max_reg_targets >= size_of_interest[0]) & (max_reg_targets < size_of_interest[1])
 
         # choose bboxes with minimum area
@@ -56,21 +61,36 @@ class FCOSPreprocessing:
         cells_to_gt_areas[~is_in_boxes] = INF
         cells_to_gt_areas[~coordinates_belong_to_scale] = INF
 
+        # map cells to gt
         cells_to_min_area = np.min(cells_to_gt_areas, axis=-1)
         cells_to_gt_inds = np.argmin(cells_to_gt_areas, axis=-1)
 
-        final_regression_targets = regression_targets[np.arange(H)[:, None], np.arange(W)[None, :], :, cells_to_gt_inds]
-        final_regression_targets[cells_to_min_area == INF] = 0
+        # compute final targets
+        regression_targets = regression_targets_to_gt[h_cells[:, None], w_cells[None, :], :, cells_to_gt_inds]
+        regression_targets[cells_to_min_area == INF] = 0
+
+        classification_targets = np.zeros((*grid_size, self.no_classes))
+        classification_targets[h_cells[:, None], w_cells[None, :], np.argmax(classes, axis=-1)[cells_to_gt_inds]] = 1
+        classification_targets[cells_to_min_area == INF] = 0
+
+        left_right = regression_targets[:, :, [0, 2]]
+        top_bottom = regression_targets[:, :, [1, 3]]
+        centerness_targets = (np.min(left_right, axis=-1) / np.max(left_right, axis=-1)) * (
+                np.min(top_bottom, axis=-1) / np.max(top_bottom, axis=-1))
+        centerness_targets = np.sqrt(centerness_targets)
+        centerness_targets[cells_to_min_area == INF] = 0
 
         return classification_targets, centerness_targets, regression_targets
 
-    def __call__(self, labels):
+    def _process_scale(self, labels, stride, size_of_interest):
         batch_classification_targets, batch_centerness_targets, batch_regression_targets = [], [], []
         for label in labels:
-            classification_targets, centerness_targets, regression_targets = self.process_sample(label[LabelType.CLASS],
-                                                                                                 label[
-                                                                                                     LabelType.COORDINATES],
-                                                                                                 2, [0, 64])
+            classification_targets, centerness_targets, regression_targets = self._process_sample(
+                label[LabelType.CLASS],
+                label[LabelType.COORDINATES],
+                stride,
+                size_of_interest
+            )
             batch_classification_targets.append(classification_targets)
             batch_centerness_targets.append(centerness_targets)
             batch_regression_targets.append(regression_targets)
@@ -84,6 +104,12 @@ class FCOSPreprocessing:
             tf.convert_to_tensor(batch_centerness_targets, dtype=tf.float32),
             tf.convert_to_tensor(batch_regression_targets, dtype=tf.float32),
         )
+
+    def __call__(self, labels):
+        return {
+            stride: self._process_scale(labels, stride, self.thresholds[i:i + 2])
+            for i, stride in enumerate(self.strides)
+        }
 
 
 class FCOSPostprocessing:
@@ -186,26 +212,18 @@ if __name__ == '__main__':
             [1, 0],
             [0, 1],
             [0, 1],
+            [0, 1],
         ])
     }
     ]
     preprocessor = FCOSPreprocessing(
-        (10, 20),
+        (10*32, 20*32),
         2,
-        (32, 16, 8),
-        (128, 64)
+        (8, 16, 32),
+        (64, 128)
     )
 
-    processed_gt, true_bboxes = preprocessor(fake_gt * 8)
-    print(processed_gt.shape)
-    processed_gt = processed_gt[0]
-    for i in range(processed_gt.shape[0]):
-        for j in range(processed_gt.shape[1]):
-            print(i, j)
-            print(processed_gt[i, j, :, :])
-            print()
-
-    # _conf, _boxes, _classes = preprocessor.decode_gt(processed_gt)
-    #
-    # print(_boxes)
-    # print(_classes)
+    scales = preprocessor(fake_gt * 8)
+    print(len(scales))
+    for stride, scale in scales.items():
+        print(stride, [x.shape for x in scale])
