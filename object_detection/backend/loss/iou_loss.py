@@ -2,18 +2,15 @@ import tensorflow as tf
 
 
 def iou_loss(target, pred, loss_type):
-    pred = tf.reshape(pred, (-1, 4))
-    target = tf.reshape(target, (-1, 4))
+    pred_left = pred[..., 0]
+    pred_top = pred[..., 1]
+    pred_right = pred[..., 2]
+    pred_bottom = pred[..., 3]
 
-    pred_left = pred[:, 0]
-    pred_top = pred[:, 1]
-    pred_right = pred[:, 2]
-    pred_bottom = pred[:, 3]
-
-    target_left = target[:, 0]
-    target_top = target[:, 1]
-    target_right = target[:, 2]
-    target_bottom = target[:, 3]
+    target_left = target[..., 0]
+    target_top = target[..., 1]
+    target_right = target[..., 2]
+    target_bottom = target[..., 3]
 
     target_area = (target_left + target_right) * \
                   (target_top + target_bottom)
@@ -40,3 +37,10 @@ def iou_loss(target, pred, loss_type):
         raise NotImplementedError
 
     return losses
+
+
+if __name__ == '__main__':
+    a = tf.ones((5, 10, 4))
+    b = tf.ones((5, 10, 4))
+
+    print(iou_loss(a, b, loss_type='giou'))

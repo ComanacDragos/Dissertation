@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 
 
@@ -32,3 +33,10 @@ def categorical_focal_crossentropy(
     focal_cce = tf.math.multiply(weighting_factor, cce)
     focal_cce = tf.math.reduce_sum(focal_cce, axis=axis)
     return focal_cce
+
+
+if __name__ == '__main__':
+    a = np.zeros((10, 20, 5))
+    b = np.zeros((10, 20, 5))
+
+    print(categorical_focal_crossentropy(a, b))

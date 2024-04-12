@@ -25,6 +25,7 @@ class FCOSLoss(CustomLoss):
 
         self.class_loss = class_loss
         self.reg_loss = reg_loss
+        self.centerness_loss = tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.keras.losses.Reduction.NONE)
 
     def call(self, y_true, y_pred: tf.Tensor):
         loss_dict = OrderedDict()
@@ -33,7 +34,7 @@ class FCOSLoss(CustomLoss):
             class_gt, centerness_gt, reg_gt = y_true[stride]
             class_pred, centerness_pred, reg_pred = y_pred[stride]
 
-            gt_indicator = tf.reduce_max(class_gt, axis=-1)
+            gt_indicator = tf.reduce_max(class_gt, axis=-1) # TODO: use this
             num_pos = tf.reduce_sum(gt_indicator)
 
             # compute classification loss
@@ -42,12 +43,14 @@ class FCOSLoss(CustomLoss):
             loss_dict[f"class_loss_{stride}"] = class_loss
 
             # compute regression loss
-            reg_loss = tf.reduce_sum(self.reg_loss(reg_gt, reg_pred))
+            reg_loss = tf.reduce_sum(self.reg_loss(reg_gt, reg_pred) * gt_indicator)
             reg_loss = (reg_loss * self.reg_weight) / num_pos
             loss_dict[f"reg_loss_{stride}"] = reg_loss
 
             # computer centerness loss
-            centerness_loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)(centerness_gt, centerness_pred)
+            centerness_loss = tf.reduce_sum(
+                self.centerness_loss(centerness_gt[..., None], centerness_pred[..., None]) * gt_indicator
+            )
 
             centerness_loss = (centerness_loss * self.centerness_weight) / num_pos
             loss_dict[f"centerness_loss_{stride}"] = centerness_loss
@@ -58,7 +61,7 @@ class FCOSLoss(CustomLoss):
 
 
 if __name__ == '__main__':
-    fake_gt = tf.convert_to_tensor([[[0.5, 1], [1, 0]], [[0, 1], [1, 0]]], dtype=tf.float32)
-    fake_pred = tf.convert_to_tensor([[[0, 100], [100, -100]], [[-100, 100], [100, -100]]], dtype=tf.float32)
+    fake_gt = tf.zeros((10, 20))
+    fake_pred = tf.zeros((10, 20))
 
-    print(tf.keras.losses.BinaryCrossentropy(from_logits=True)(fake_gt, fake_pred))
+    print(tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.keras.losses.Reduction.NONE)(fake_gt[..., None], fake_pred[..., None]))
