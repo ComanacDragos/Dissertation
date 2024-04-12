@@ -6,6 +6,8 @@ from backend.enums import LabelType, OutputType, ObjectDetectionOutputType
 from backend.loss.yolo_loss import create_cell_grid
 from backend.model.softmax import softmax
 
+INF = 2 ** 64
+
 
 class FCOSPreprocessing:
     def __init__(self, image_size, no_classes, strides, thresholds):
@@ -23,35 +25,52 @@ class FCOSPreprocessing:
         """
         pass
 
-    def process_sample(self, classes, coordinates, stride, object_sizes_of_interest):
+    def process_sample(self, classes, coordinates, stride, size_of_interest):
         grid_size = self.image_size // stride
-        regression_targets = np.zeros((*grid_size, 4))
         classification_targets = np.zeros((*grid_size, self.no_classes))
         centerness_targets = np.zeros((*grid_size, 1))
 
-        H, W = self.image_size
+        H, W = grid_size
 
-        locations = np.stack(np.meshgrid(np.arange(H), np.arange(W), indexing='ij'), axis=-1)
-        remapped_locations = locations*stride + stride // 2
+        cells = np.stack(np.meshgrid(np.arange(H), np.arange(W), indexing='ij'), axis=-1)
+        remapped_cells = cells * stride + stride // 2
 
-        xs = remapped_locations[..., 0]
-        ys = remapped_locations[..., 1]
+        xs = remapped_cells[..., 1]
+        ys = remapped_cells[..., 0]
 
         l = xs[:, :, None] - coordinates[:, 0]
         t = ys[:, :, None] - coordinates[:, 1]
-        r = coordinates[:, 2]- xs[:, :, None]
-        b = coordinates[:, 3]- ys[:, :, None]
+        r = coordinates[:, 2] - xs[:, :, None]
+        b = coordinates[:, 3] - ys[:, :, None]
 
         regression_targets = np.stack([l, t, r, b], axis=2)
 
         is_in_boxes = np.min(regression_targets, axis=2) > 0
+
+        max_reg_targets = np.max(regression_targets, axis=2)
+        coordinates_belong_to_scale = (max_reg_targets >= size_of_interest[0]) & (max_reg_targets < size_of_interest[1])
+
+        # choose bboxes with minimum area
+        areas = (coordinates[:, 2] - coordinates[:, 0]) * (coordinates[:, 3] - coordinates[:, 1])
+        cells_to_gt_areas = areas[None].repeat(W, 0)[None].repeat(H, 0)
+        cells_to_gt_areas[~is_in_boxes] = INF
+        cells_to_gt_areas[~coordinates_belong_to_scale] = INF
+
+        cells_to_min_area = np.min(cells_to_gt_areas, axis=-1)
+        cells_to_gt_inds = np.argmin(cells_to_gt_areas, axis=-1)
+
+        final_regression_targets = regression_targets[np.arange(H)[:, None], np.arange(W)[None, :], :, cells_to_gt_inds]
+        final_regression_targets[cells_to_min_area == INF] = 0
 
         return classification_targets, centerness_targets, regression_targets
 
     def __call__(self, labels):
         batch_classification_targets, batch_centerness_targets, batch_regression_targets = [], [], []
         for label in labels:
-            classification_targets, centerness_targets, regression_targets = self.process_sample(label[LabelType.CLASS], label[LabelType.COORDINATES], 2, [0, 64])
+            classification_targets, centerness_targets, regression_targets = self.process_sample(label[LabelType.CLASS],
+                                                                                                 label[
+                                                                                                     LabelType.COORDINATES],
+                                                                                                 2, [0, 64])
             batch_classification_targets.append(classification_targets)
             batch_centerness_targets.append(centerness_targets)
             batch_regression_targets.append(regression_targets)
@@ -157,11 +176,16 @@ if __name__ == '__main__':
     fake_gt = [{
         LabelType.COORDINATES: np.asarray([
             [1.7, 2.3, 3.23, 4.43],
-            [4.1234, 5.4243, 7.8153, 8.7565]
+            [4.1234, 5.4243, 7.8153, 8.7565],
+            [10, 5, 19, 9],
+            [12, 5, 17, 9],
+            [12, 5, 18, 9]
         ]),
         LabelType.CLASS: np.asarray([
             [0, 1],
-            [1, 0]
+            [1, 0],
+            [0, 1],
+            [0, 1],
         ])
     }
     ]
