@@ -25,7 +25,7 @@ class CallbacksConfig:
             ModelSaver(output_path, follow_metric='mAP'),
             CosineAnnealingScheduler(
                 n_min=1e-6,
-                n_max=3e-4,
+                n_max=1e-4,
                 T=10,
             )
         ])

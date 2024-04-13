@@ -27,14 +27,14 @@ class FCOSLoss(CustomLoss):
         self.reg_loss = reg_loss
         self.centerness_loss = tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.keras.losses.Reduction.NONE)
 
-    def call(self, y_true, y_pred: tf.Tensor):
+    def __call__(self, y_true, y_pred: tf.Tensor):
         loss_dict = OrderedDict()
         total_loss = 0.
         for stride, stride_weight in self.strides_weights.items():
             class_gt, centerness_gt, reg_gt = y_true[stride]
             class_pred, centerness_pred, reg_pred = y_pred[stride]
 
-            gt_indicator = tf.reduce_max(class_gt, axis=-1) # TODO: use this
+            gt_indicator = tf.reduce_max(class_gt, axis=-1)
             num_pos = tf.reduce_sum(gt_indicator)
 
             # compute classification loss
@@ -49,7 +49,7 @@ class FCOSLoss(CustomLoss):
 
             # computer centerness loss
             centerness_loss = tf.reduce_sum(
-                self.centerness_loss(centerness_gt[..., None], centerness_pred[..., None]) * gt_indicator
+                self.centerness_loss(centerness_gt[..., None], centerness_pred) * gt_indicator
             )
 
             centerness_loss = (centerness_loss * self.centerness_weight) / num_pos

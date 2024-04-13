@@ -21,7 +21,11 @@ class MultiScaleModel(GenericModel):
         x = self.backbone(inputs)
         if self.neck:
             x = self.neck(x)
-        outputs = [self.head(_x) for _x in x]
+        outputs = {}
+        for scale in x:
+            scale_output = self.head(scale)
+            stride = inputs.shape[1] // scale_output[0].shape[1]
+            outputs[stride] = scale_output
         return outputs
 
 

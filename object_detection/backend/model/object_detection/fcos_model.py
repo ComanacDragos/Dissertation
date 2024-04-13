@@ -36,6 +36,9 @@ class FCOSPreprocessing:
         grid_size = self.image_size // stride
         H, W = grid_size
 
+        if len(coordinates) == 0:
+            return np.zeros((H, W, self.no_classes)), np.zeros((H, W)), np.zeros((H, W, 4))
+
         h_cells, w_cells = np.arange(H), np.arange(W)
         cells = np.stack(np.meshgrid(h_cells, w_cells, indexing='ij'), axis=-1)
         remapped_cells = cells * stride + stride // 2
@@ -73,8 +76,9 @@ class FCOSPreprocessing:
         classification_targets[h_cells[:, None], w_cells[None, :], np.argmax(classes, axis=-1)[cells_to_gt_inds]] = 1
         classification_targets[cells_to_min_area == INF] = 0
 
-        left_right = regression_targets[:, :, [0, 2]]
-        top_bottom = regression_targets[:, :, [1, 3]]
+        eps = 1e-9
+        left_right = regression_targets[:, :, [0, 2]] + eps
+        top_bottom = regression_targets[:, :, [1, 3]] + eps
         centerness_targets = (np.min(left_right, axis=-1) / np.max(left_right, axis=-1)) * (
                 np.min(top_bottom, axis=-1) / np.max(top_bottom, axis=-1))
         centerness_targets = np.sqrt(centerness_targets)
@@ -113,30 +117,43 @@ class FCOSPreprocessing:
 
 
 class FCOSPostprocessing:
-    def __init__(self, image_size, grid_size, anchors, background_prob, box_filter=None):
+    def __init__(self, image_size, box_filter=None):
         self.image_size = image_size
-        self.grid_size = grid_size
-        self.background_prob = background_prob
-        self.cell_grid = create_cell_grid(grid_size, len(anchors))
-        cell_size = np.asarray(image_size) / np.asarray(grid_size)
-        self.cell_size = cell_size[1], cell_size[0]
-
-        self.anchors = np.asarray(anchors)
         self.box_filter = box_filter
 
     def _flatten(self, output):
         return tf.reshape(output, (-1, self.grid_size[0] * self.grid_size[1] * len(self.anchors), output.shape[-1]))
 
-    def _decode_one_scale(self, scale_outputs):
-        classification, centerness, regression = scale_outputs
+    def _decode_one_scale(self, stride, classification, centerness, regression):
+        N, H, W, no_classes = classification.shape
 
-        _, H, W, _ = classification.shape
-        stride = self.image_size / H
-
-        classification = K.sigmoid(classification)
+        # prepare class probabilities
+        probabilities = K.softmax(classification)
         centerness = K.sigmoid(centerness)
+        probabilities = probabilities * centerness
 
-        # K.mes
+        # compute grid
+        h_cells, w_cells = tf.range(H), tf.range(W)
+        cells = tf.stack(tf.meshgrid(h_cells, w_cells, indexing='ij'), axis=-1)
+        remapped_cells = cells * stride + stride // 2
+        remapped_cells = tf.repeat(remapped_cells[None, ...], N, axis=0)
+        remapped_cells = tf.cast(remapped_cells, regression.dtype)
+
+        regression = tf.math.exp(regression)
+        boxes = tf.stack([
+            remapped_cells[..., 0] - regression[..., 0],
+            remapped_cells[..., 1] - regression[..., 1],
+            remapped_cells[..., 0] + regression[..., 2],
+            remapped_cells[..., 1] + regression[..., 3],
+        ], axis=-1)
+        img_H, img_W = self.image_size
+        boxes = tf.clip_by_value(boxes, clip_value_min=0, clip_value_max=[img_W, img_H, img_W, img_H])
+
+        # flatten
+        probabilities = tf.reshape(probabilities, (N, -1, no_classes))
+        boxes = tf.reshape(boxes, (N, -1, 4))
+
+        return probabilities, boxes
 
     def __call__(self, output):
         """
@@ -145,28 +162,23 @@ class FCOSPostprocessing:
         :param output: prediction made by model
         :return: scores, boxes, classes
         """
-        xy = (K.sigmoid(output[..., :2]) + self.cell_grid) * self.cell_size
-        wh = K.exp(output[..., 2:4]) * self.anchors
-        boxes = tf.concat([xy - wh / 2, xy + wh / 2], axis=-1)
-        # boxes = tf.concat([xy - 20, xy + 20], axis=-1)
+        all_probs = []
+        all_boxes = []
+        for stride, scale_outputs in output.items():
+            probs, boxes = self._decode_one_scale(stride, *scale_outputs)
+            all_probs.append(probs)
+            all_boxes.append(boxes)
+        all_probs = tf.concat(all_probs, axis=1)
+        all_boxes = tf.concat(all_boxes, axis=1)
 
-        conf_scores = K.sigmoid(output[..., 4:5])
-        classes = conf_scores * softmax(output[..., 5:])
-
-        boxes = self._flatten(boxes)
-        clip_values = self.image_size + self.image_size
-        boxes = tf.clip_by_value(boxes, clip_value_min=0, clip_value_max=clip_values)
-
-        classes = self._flatten(classes)
-
-        best_classes_prob = tf.reduce_max(classes, axis=-1)
-        best_classes = tf.argmax(classes, axis=-1)
+        best_classes_prob = tf.reduce_max(all_probs, axis=-1)
+        best_classes = tf.argmax(all_probs, axis=-1)
 
         processed_outputs = {
-            OutputType.COORDINATES: boxes.numpy(),
+            OutputType.COORDINATES: all_boxes.numpy(),
             OutputType.CLASS_PROBABILITIES: best_classes_prob.numpy(),
             OutputType.CLASS_LABEL: best_classes.numpy(),
-            OutputType.ALL_CLASS_PROBABILITIES: classes.numpy()
+            OutputType.ALL_CLASS_PROBABILITIES: all_probs.numpy()
         }
 
         outputs = {
@@ -183,9 +195,9 @@ class FCOSHead:
         self.classification_branch = classification_branch
         self.regression_branch = regression_branch
 
-        self.classification_1x1 = conv_generator(1, no_classes)
-        self.centerness_1x1 = conv_generator(1, 1)
-        self.regression_1x1 = conv_generator(1, 4)
+        self.classification_1x1 = conv_generator(1, no_classes)()
+        self.centerness_1x1 = conv_generator(1, 1)()
+        self.regression_1x1 = conv_generator(1, 4)()
 
     def __call__(self, inputs):
         classification_outputs = self.classification_branch(inputs)
@@ -225,5 +237,14 @@ if __name__ == '__main__':
 
     scales = preprocessor(fake_gt * 8)
     print(len(scales))
-    for stride, scale in scales.items():
-        print(stride, [x.shape for x in scale])
+    for _stride, scale in scales.items():
+        print(_stride, [x.shape for x in scale])
+
+    post_process = FCOSPostprocessing((10, 20), min_class_prob=0.5)
+    post_process({
+        2: (
+            tf.convert_to_tensor(np.random.random((8, 5, 10, 3))),
+            tf.convert_to_tensor(np.random.random((8, 5, 10, 1))),
+            tf.convert_to_tensor(np.random.random((8, 5, 10, 4)))
+        )
+    })

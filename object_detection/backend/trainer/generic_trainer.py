@@ -82,7 +82,8 @@ class GenericTrainer:
 
             loss_value = loss_value.numpy()
             loss_dict = {loss_type: value.numpy() for loss_type, value in loss_dict.items()}
-            loss_dict_as_string = " ".join([f"{name}: {str(round(value, 4))}" for name, value in loss_dict.items()])
+            loss_dict_as_string = "\n".join([f"{name}: {str(round(value, 4))}" for name, value in loss_dict.items()])
+            loss_dict_as_string = f"\n{loss_dict_as_string}\n"
             pbar.set_postfix_str(f"Train Loss: {str(round(loss_value, 4))} {loss_dict_as_string}")
 
             if self.postprocessor:

@@ -105,10 +105,9 @@ class YOLOPreprocessing:
 
 
 class YOLOPostprocessing:
-    def __init__(self, image_size, grid_size, anchors, background_prob, box_filter=None):
+    def __init__(self, image_size, grid_size, anchors, box_filter=None):
         self.image_size = image_size[::-1] # flip it in oder to have width, height
         self.grid_size = grid_size
-        self.background_prob = background_prob
         self.cell_grid = create_cell_grid(grid_size, len(anchors))
         cell_size = np.asarray(image_size) / np.asarray(grid_size)
         self.cell_size = cell_size[1], cell_size[0]
