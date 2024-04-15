@@ -10,8 +10,8 @@ def categorical_focal_crossentropy(
         from_logits=False,
         axis=-1,
 ):
-    if from_logits:
-        y_pred = tf.math.softmax(y_pred, axis=axis)
+    # if from_logits:
+    #     y_pred = tf.math.softmax(y_pred, axis=axis)
 
     # Adjust the predictions so that the probability of
     # each class for every sample adds up to 1

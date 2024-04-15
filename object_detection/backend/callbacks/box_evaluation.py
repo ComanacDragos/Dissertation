@@ -15,10 +15,11 @@ from backend.utils import to_json
 
 
 class BoxEvaluation(Callback):
-    def __init__(self, output_path, labels, metrics):
+    def __init__(self, output_path, labels, metrics, dump_predictions=False):
         super().__init__()
         self.id_to_class = {i: label for i, label in enumerate(labels)}
         self.output_path = Path(output_path) / "evaluation"
+        self.dump_predictions = dump_predictions
         os.makedirs(self.output_path, exist_ok=True)
 
         self.logs = None
@@ -78,8 +79,9 @@ class BoxEvaluation(Callback):
             self._plot_history(metric_name, metric_history)
             self._plot_overview(logs.epoch, metric_name, result)
 
-        os.makedirs(self.output_path / "dumps", exist_ok=True)
-        to_json(self.logs, self.output_path / "dumps" / f"logs_{logs.epoch}.json")
+        if self.dump_predictions:
+            os.makedirs(self.output_path / "dumps", exist_ok=True)
+            to_json(self.logs, self.output_path / "dumps" / f"logs_{logs.epoch}.json")
 
     def _plot_overview(self, epoch, metric_name, results):
         output_path = self.output_path / "epoch_overview"

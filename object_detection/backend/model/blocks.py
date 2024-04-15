@@ -31,7 +31,7 @@ class ConvBlock:
             x = self.activation_generator()(x)
 
         if self.add_skip_connection:
-            x = Add([inputs, x])
+            x = Add()([inputs, x])
 
         if self.dropout_generator:
             x = self.dropout_generator()(x)

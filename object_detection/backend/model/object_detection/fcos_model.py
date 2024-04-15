@@ -128,7 +128,7 @@ class FCOSPostprocessing:
         N, H, W, no_classes = classification.shape
 
         # prepare class probabilities
-        probabilities = K.softmax(classification)
+        probabilities = K.sigmoid(classification)
         centerness = K.sigmoid(centerness)
         probabilities = probabilities * centerness
 

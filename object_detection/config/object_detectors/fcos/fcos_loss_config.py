@@ -7,7 +7,7 @@ class FCOSLossConfig:
     REG_WEIGHT = 1.
     CLASS_WEIGHT = 1.
     CENTERNESS_WEIGHT = 1.
-    IOU_LOSS_TYPE = 'giou'
+    IOU_LOSS_TYPE = 'iou'
 
     FOCAL_ALPHA = 0.25
     FOCAL_GAMMA = 2.

@@ -27,7 +27,7 @@ class FCOSLoss(CustomLoss):
         self.reg_loss = reg_loss
         self.centerness_loss = tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.keras.losses.Reduction.NONE)
 
-    def __call__(self, y_true, y_pred: tf.Tensor):
+    def call(self, y_true, y_pred: tf.Tensor):
         loss_dict = OrderedDict()
         total_loss = 0.
         for stride, stride_weight in self.strides_weights.items():
@@ -35,17 +35,21 @@ class FCOSLoss(CustomLoss):
             class_pred, centerness_pred, reg_pred = y_pred[stride]
 
             gt_indicator = tf.reduce_max(class_gt, axis=-1)
-            num_pos = tf.reduce_sum(gt_indicator)
+            num_pos = tf.reduce_sum(gt_indicator) + 1e-9
 
             # compute classification loss
+            class_pred = tf.math.sigmoid(class_pred)
             class_loss = tf.reduce_sum(self.class_loss(class_gt, class_pred))
             class_loss = (class_loss * self.class_weight) / num_pos
-            loss_dict[f"class_loss_{stride}"] = class_loss
+            loss_dict[f"class_{stride}"] = class_loss
 
             # compute regression loss
+            reg_pred = tf.math.exp(reg_pred)
+            H, W = self.image_size
+            reg_pred = tf.clip_by_value(reg_pred, clip_value_min=0, clip_value_max=[W, H, W, H])
             reg_loss = tf.reduce_sum(self.reg_loss(reg_gt, reg_pred) * gt_indicator)
             reg_loss = (reg_loss * self.reg_weight) / num_pos
-            loss_dict[f"reg_loss_{stride}"] = reg_loss
+            loss_dict[f"reg_{stride}"] = reg_loss
 
             # computer centerness loss
             centerness_loss = tf.reduce_sum(
@@ -53,7 +57,7 @@ class FCOSLoss(CustomLoss):
             )
 
             centerness_loss = (centerness_loss * self.centerness_weight) / num_pos
-            loss_dict[f"centerness_loss_{stride}"] = centerness_loss
+            loss_dict[f"centerness_{stride}"] = centerness_loss
 
             total_loss += (class_loss + reg_loss + centerness_loss) * stride_weight
 

@@ -10,11 +10,12 @@ from config.common.layer_generators_config import *
 from config.common.mobilenet_backbone_config import MobilenetBackboneConfig
 
 
-def conv_block_generator(filters, strides=1):
+def conv_block_generator(filters, strides=1, add_skip_connection=False):
     return ConvBlock(
         conv_generator(3, filters, strides),
         activation_generator=activation_generator,
         batch_norm_generator=batch_norm_generator,
+        add_skip_connection=add_skip_connection
         # dropout_generator=dropout_generator,
     )
 
@@ -47,16 +48,16 @@ class FCOSModelConfig:
                 no_classes=no_classes,
                 conv_generator=FCOSModelConfig.CONV_GENERATOR,
                 classification_branch=Sequential([
-                    conv_block_generator(256),
-                    conv_block_generator(256),
-                    conv_block_generator(256),
-                    conv_block_generator(256),
+                    # conv_block_generator(256),
+                    # conv_block_generator(256),
+                    conv_block_generator(64),
+                    # conv_block_generator(64, add_skip_connection=True),
                 ]),
                 regression_branch=Sequential([
-                    conv_block_generator(256),
-                    conv_block_generator(256),
-                    conv_block_generator(256),
-                    conv_block_generator(256),
+                    # conv_block_generator(256),
+                    # conv_block_generator(256),
+                    conv_block_generator(64),
+                    # conv_block_generator(64, add_skip_connection=True),
                 ])
             )
         )(inputs)

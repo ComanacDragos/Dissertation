@@ -10,14 +10,14 @@ class KittiDataGeneratorConfig:
     BATCH_SIZE = 16
     CLASS_MAPPING = {
         "Pedestrian": "Person",
-        # "Truck": "Vehicle",
+        "Truck": "Vehicle",
         "Car": "Vehicle",
-        # "Cyclist": "Cyclist",
+        "Cyclist": "Cyclist",
         # "DontCare": "DontCare",
         # "Misc": "Misc",
-        # "Van": "Vehicle",
-        # "Tram": "Tram",
-        # "Person_sitting": "Person"
+        "Van": "Vehicle",
+        "Tram": "Tram",
+        "Person_sitting": "Person"
     }
     LABELS = sorted(set(CLASS_MAPPING.values()))
     IMAGE_SHAPE = (320, 1024, 3)
