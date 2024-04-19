@@ -3,8 +3,6 @@ import tensorflow as tf
 from tensorflow.keras import backend as K
 
 from backend.enums import LabelType, OutputType, ObjectDetectionOutputType
-from backend.loss.yolo_loss import create_cell_grid
-from backend.model.softmax import softmax
 
 INF = 2 ** 64
 
@@ -141,10 +139,10 @@ class FCOSPostprocessing:
 
         regression = tf.math.exp(regression)
         boxes = tf.stack([
-            remapped_cells[..., 0] - regression[..., 0],
-            remapped_cells[..., 1] - regression[..., 1],
-            remapped_cells[..., 0] + regression[..., 2],
-            remapped_cells[..., 1] + regression[..., 3],
+            remapped_cells[..., 1] - regression[..., 0],  # left
+            remapped_cells[..., 0] - regression[..., 1],  # top
+            remapped_cells[..., 1] + regression[..., 2],  # right
+            remapped_cells[..., 0] + regression[..., 3],  # bottom
         ], axis=-1)
         img_H, img_W = self.image_size
         boxes = tf.clip_by_value(boxes, clip_value_min=0, clip_value_max=[img_W, img_H, img_W, img_H])
@@ -229,7 +227,7 @@ if __name__ == '__main__':
     }
     ]
     preprocessor = FCOSPreprocessing(
-        (10*32, 20*32),
+        (10 * 32, 20 * 32),
         2,
         (8, 16, 32),
         (64, 128)

@@ -55,7 +55,6 @@ class FCOSLoss(CustomLoss):
             centerness_loss = tf.reduce_sum(
                 self.centerness_loss(centerness_gt[..., None], centerness_pred) * gt_indicator
             )
-
             centerness_loss = (centerness_loss * self.centerness_weight) / num_pos
             loss_dict[f"centerness_{stride}"] = centerness_loss
 

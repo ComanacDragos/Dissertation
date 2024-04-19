@@ -69,6 +69,7 @@ class GenericTrainer:
                 model=self.model,
                 optimizer=self.optimizer
             ))
+            self.train_dataset.on_epoch_end()
 
     def compute_loss(self, inputs, network_output):
         labels = inputs[DataType.LABEL]

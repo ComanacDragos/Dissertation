@@ -1,5 +1,5 @@
 from backend.loss.fcos_loss import FCOSLoss
-from backend.loss.focal_loss import categorical_focal_crossentropy
+from backend.loss.focal_loss import binary_focal_crossentropy
 from backend.loss.iou_loss import iou_loss
 
 
@@ -18,10 +18,10 @@ class FCOSLossConfig:
             return iou_loss(target, pred, FCOSLossConfig.IOU_LOSS_TYPE)
 
         def focal_loss_wrapper(target, pred):
-            return categorical_focal_crossentropy(
+            return binary_focal_crossentropy(
                 target, pred,
                 alpha=FCOSLossConfig.FOCAL_ALPHA,
-                gamma=FCOSLossConfig.FOCAL_GAMMA
+                gamma=FCOSLossConfig.FOCAL_GAMMA,
             )
 
         return FCOSLoss(

@@ -31,7 +31,7 @@ class MeanAP:
                 det.append(boxes[classes == cls_id])
             det_results.append(det)
 
-        mAP, aps = eval_map(
+        mAP, results = eval_map(
             det_results,
             annotations,
             scale_ranges=self.scale_ranges,
@@ -43,6 +43,8 @@ class MeanAP:
         metrics['mAP'] = mAP
 
         for i, label in enumerate(self.labels):
-            metrics[f'{label}_AP'] = aps[i]['ap']
-
+            metrics[f'{label}_AP'] = results[i]['ap']
+            metrics[f'{label}_recall'] = results[i]['recall'][-1]
+            metrics[f'{label}_num_gts'] = results[i]['num_gts']
+            metrics[f'{label}_num_dets'] = results[i]['num_dets']
         return metrics

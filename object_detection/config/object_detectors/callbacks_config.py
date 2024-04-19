@@ -4,7 +4,7 @@ from backend.callbacks import *
 
 
 class CallbacksConfig:
-    PLOT_FREQUENCY = 100
+    PLOT_FREQUENCY = 1000
 
     @staticmethod
     def build(output_path, labels):
@@ -19,7 +19,7 @@ class CallbacksConfig:
                 output_path,
                 labels=labels,
                 metrics={
-                    'mAP': MeanAP(labels, iou_threshold=0.4)
+                    'mAP': MeanAP(labels, iou_threshold=0.5)
                 }
             ),
             ModelSaver(output_path, follow_metric='mAP'),

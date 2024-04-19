@@ -16,7 +16,7 @@ from config.object_detectors.fcos.fcos_preprocessor_config import FCOSPreprocess
 
 
 class FCOSTrainerConfig:
-    EXPERIMENT = Path('outputs/fcos_train_2_scales_all_classes_sigmoid_for_cls_lr=5e-4')
+    EXPERIMENT = Path('outputs/kitti/fcos/train')
     # EXPERIMENT = Path('outputs/test_train')
 
     EPOCHS = 50

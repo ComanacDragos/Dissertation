@@ -5,7 +5,7 @@ class FCOSCommonConfig:
         # 32: 1.
     }
 
-    THRESHOLDS = [64]
+    THRESHOLDS = [128]
 
     STRIDES = sorted(STRIDES_WEIGHTS.keys())
 

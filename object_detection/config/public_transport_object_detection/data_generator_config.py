@@ -1,10 +1,11 @@
 from backend.data_generator import PublicTransportDataGenerator
 from backend.enums import Stage, DataType
+from backend.utils import set_seed
 
 
 class PublicTransportDataGeneratorConfig:
     ROOT = r"C:\Users\Dragos\datasets\OID\OID\PublicTransportFilteredProcessed"
-    CSV_PATH = "csvs/PublicTransportFilteredProcessed.csv"
+    CSV_PATH = "csvs/pt_test.csv" #"csvs/PublicTransportFilteredProcessed.csv"
     BATCH_SIZE = 8
     CLASS_MAPPING = {
         "Bus": "bus",
@@ -32,9 +33,12 @@ class PublicTransportDataGeneratorConfig:
 
 
 if __name__ == '__main__':
+    set_seed(0)
     print("Starting")
-    PublicTransportDataGeneratorConfig.BATCH_SIZE = 32
-    db = PublicTransportDataGeneratorConfig.build(Stage.VAL)
+    PublicTransportDataGeneratorConfig.BATCH_SIZE = 8
+    db = PublicTransportDataGeneratorConfig.build(Stage.TRAIN)
     print(len(db))
     data = db[0]
     print(f"Images shape {data[DataType.IMAGE].shape}")
+
+
