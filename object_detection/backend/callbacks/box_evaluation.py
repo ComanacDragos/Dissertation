@@ -87,28 +87,30 @@ class BoxEvaluation(Callback):
         output_path = self.output_path / "epoch_overview"
         os.makedirs(output_path, exist_ok=True)
 
-        results = results.items()
+        results = [(k, v) for k, v in results.items() if 'num' not in k]
         labels = [x[0] for x in results]
         values = [x[1] for x in results]
 
         plt.figure(figsize=(15, 5))
-        sns.barplot({
+        ax = sns.barplot({
             'labels': labels,
             'values': values
         }, y='labels', x='values', orient='h')
+        for i in ax.containers:
+            ax.bar_label(i, )
         plt.xticks([0.0] + list(np.linspace(0.1, 1, 10)))
         plt.savefig(output_path / f"epoch_{epoch}_{metric_name}_overview.png")
         plt.clf()
         plt.close()
 
-    def _plot_history(self, metric_name, metric_history):
+    def _plot_history(self, metric_name, all_metric_history):
         cols = 2
-        rows = len(metric_history) // 2
+        rows = len(all_metric_history) // 2
         if len(self.metrics) % cols > 0:
             rows += 1
         epochs = self.history['epoch']
-        plt.figure(figsize=(10, 10))
-        for i, (sub_metric_name, metric_history) in enumerate(metric_history.items(), start=1):
+        plt.figure(figsize=(20, 30))
+        for i, (sub_metric_name, metric_history) in enumerate(all_metric_history.items(), start=1):
             plt.subplot(rows, cols, i)
             plt.title(sub_metric_name)
             plt.xlabel('epoch')
@@ -128,6 +130,9 @@ class BoxEvaluation(Callback):
 
             plt.axhline(max_value, linestyle='--', color="red")
             plt.axvline(max_epoch, linestyle='--', color="red")
+
+            if "num" in sub_metric_name:
+                continue
 
             ticks = [0.] + list(np.linspace(0.2, 1, 5))
 

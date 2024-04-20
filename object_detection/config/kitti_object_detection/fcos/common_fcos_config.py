@@ -1,4 +1,9 @@
+from pathlib import Path
+
+
 class FCOSCommonConfig:
+    PREFIX = Path('outputs/kitti/fcos/v1_with_shuffle')
+
     STRIDES_WEIGHTS = {
         8: 1.,
         16: 1.,

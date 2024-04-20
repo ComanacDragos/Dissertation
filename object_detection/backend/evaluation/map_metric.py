@@ -44,7 +44,11 @@ class MeanAP:
 
         for i, label in enumerate(self.labels):
             metrics[f'{label}_AP'] = results[i]['ap']
-            metrics[f'{label}_recall'] = results[i]['recall'][-1]
+            recalls = results[i]['recall']
+            if len(recalls) > 0:
+                metrics[f'{label}_recall'] = recalls[-1]
+            else:
+                metrics[f'{label}_recall'] = 0.
             metrics[f'{label}_num_gts'] = results[i]['num_gts']
             metrics[f'{label}_num_dets'] = results[i]['num_dets']
         return metrics

@@ -24,16 +24,16 @@ def draw_boxes(img, text_labels, boxes):
 
         if ymax + 30 >= img_height:
             cv2.rectangle(img, (xmin, ymin),
-                          (xmin + len(text) * 10, int(ymin - 20)),
+                          (xmin + len(text) * 5, int(ymin - 20)),
                           (255, 140, 0), cv2.FILLED)
             cv2.putText(img, text, (xmin, int(ymin - 5)), font,
-                        0.5, (255, 255, 255), 1)
+                        0.3, (255, 255, 255), 1)
         else:
             cv2.rectangle(img, (xmin, ymax),
-                          (xmin + len(text) * 10, int(ymax + 20)),
+                          (xmin + len(text) * 5, int(ymax + 20)),
                           (255, 140, 0), cv2.FILLED)
             cv2.putText(img, text, (xmin, int(ymax + 15)), font,
-                        0.5, (255, 255, 255), 1)
+                        0.3, (255, 255, 255), 1)
 
         cv2.rectangle(img, (xmin, ymin), (xmax, ymax),
                       (255, 0, 255), 1)
