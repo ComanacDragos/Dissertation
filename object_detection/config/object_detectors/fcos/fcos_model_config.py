@@ -48,16 +48,16 @@ class FCOSModelConfig:
                 no_classes=no_classes,
                 conv_generator=FCOSModelConfig.CONV_GENERATOR,
                 classification_branch=Sequential([
-                    # conv_block_generator(256),
-                    # conv_block_generator(256),
                     conv_block_generator(64),
-                    # conv_block_generator(64, add_skip_connection=True),
+                    conv_block_generator(64),
+                    conv_block_generator(64),
+                    conv_block_generator(64),
                 ]),
                 regression_branch=Sequential([
-                    # conv_block_generator(256),
-                    # conv_block_generator(256),
                     conv_block_generator(64),
-                    # conv_block_generator(64, add_skip_connection=True),
+                    conv_block_generator(64),
+                    conv_block_generator(64),
+                    conv_block_generator(64),
                 ])
             )
         )(inputs)

@@ -119,9 +119,6 @@ class FCOSPostprocessing:
         self.image_size = image_size
         self.box_filter = box_filter
 
-    def _flatten(self, output):
-        return tf.reshape(output, (-1, self.grid_size[0] * self.grid_size[1] * len(self.anchors), output.shape[-1]))
-
     def _decode_one_scale(self, stride, classification, centerness, regression):
         N, H, W, no_classes = classification.shape
 

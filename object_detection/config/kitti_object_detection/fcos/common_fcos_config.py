@@ -2,15 +2,15 @@ from pathlib import Path
 
 
 class FCOSCommonConfig:
-    PREFIX = Path('outputs/kitti/fcos/v1_with_shuffle')
+    PREFIX = Path('outputs/kitti/fcos/v5_3_scales_32_64_4_layers_64_filters_v2')
 
     STRIDES_WEIGHTS = {
         8: 1.,
         16: 1.,
-        # 32: 1.
+        32: 1.
     }
 
-    THRESHOLDS = [64]
+    THRESHOLDS = [32, 64]
 
     STRIDES = sorted(STRIDES_WEIGHTS.keys())
 
@@ -18,5 +18,5 @@ class FCOSCommonConfig:
         # "block_7_add",
         "block_5_add",   # -> 20, 64 (s: 8)
         "block_12_add",  # -> 10, 32 (s: 16)
-        # "block_15_add",  # -> 5, 16 (s:32)
+        "block_15_add",  # -> 5, 16 (s:32)
     )

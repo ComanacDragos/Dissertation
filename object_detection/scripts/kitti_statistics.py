@@ -6,9 +6,29 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-from backend.enums import Stage, DataType
+from backend.enums import Stage, DataType, LabelType
 from backend.utils import to_json, open_json
 from config.kitti_object_detection.data_generator_config import KittiDataGeneratorConfig
+
+
+def generate_boxes(output, stage):
+    output = output
+    KittiDataGeneratorConfig.BATCH_SIZE = 1  # 7481
+    ds = KittiDataGeneratorConfig.build(stage)
+    all_data = {}
+    for i in tqdm(range(len(ds)), total=len(ds)):
+        data = ds[i]
+        img_name = data[DataType.IDENTIFIER][0]
+        classes = data[DataType.LABEL][0][LabelType.CLASS]
+        if len(classes):
+            classes = [ds.labels[cls] for cls in np.argmax(classes, axis=-1)]
+        boxes = ds[i][DataType.LABEL][0][LabelType.COORDINATES]
+        all_data[img_name] = {
+            'classes': classes,
+            'boxes': boxes
+        }
+
+    to_json(all_data, output)
 
 
 def labels_stats():
@@ -64,8 +84,9 @@ def plot_dist(values, title, bins):
     plt.legend()
 
 
-def box_distribution():
-    boxes = np.asarray(open_json("outputs/kitti_boxes.json"))
+def box_distribution(json_path):
+    data = open_json(json_path)
+    boxes = np.concatenate([x['boxes'] for x in data.values() if len(x['boxes']) > 0])
     x_min, y_min, x_max, y_max = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
     center_x = (x_min + x_max) / 2
     center_y = (y_min + y_max) / 2
@@ -73,6 +94,7 @@ def box_distribution():
     bins = 100
     rows = 3
     cols = 2
+    plt.figure(figsize=(10, 10))
     plt.subplot(rows, cols, 1)
     plot_dist(x_min, "x_min", bins)
 
@@ -92,9 +114,32 @@ def box_distribution():
     plot_dist(center_y, "center_y", bins)
 
     plt.tight_layout()
-    plt.show()
 
+    # plt.show()
+    plt.savefig(json_path.split(".")[0] + ".png")
+
+
+def classes_stats(root):
+    paths = root.glob("*.json")
+    all_data = {}
+    for json_path in paths:
+        data = open_json(json_path)
+        classes = np.concatenate([x['classes'] for x in data.values() if len(x['classes']) > 0])
+        print(json_path)
+        all_data[json_path.stem] = {
+            "no_images": len(data),
+            "class_freq": dict(Counter(classes))
+        }
+    to_json(all_data, root / "statistics.json")
 
 if __name__ == '__main__':
     # generate_images_stats()
-    box_distribution()
+
+    # box_distribution("outputs/kitti_all_classes_train.json")
+    # box_distribution("outputs/kitti_all_classes_val.json")
+    # box_distribution("outputs/kitti_2_classes_train.json")
+    # box_distribution("outputs/kitti_2_classes_val.json")
+
+    # generate_boxes("outputs/kitti_all_classes_train.json", Stage.TRAIN)
+
+    classes_stats(Path("outputs/kitti/stats"))

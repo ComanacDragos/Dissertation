@@ -11,7 +11,7 @@ def activation_generator():
     return ReLU()
 
 
-def dropout_generator(rate=0.5):
+def dropout_generator(rate=0.2):
     return Dropout(rate=rate)
 
 

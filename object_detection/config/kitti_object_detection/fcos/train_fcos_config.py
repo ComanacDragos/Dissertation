@@ -16,7 +16,7 @@ from config.object_detectors.fcos.fcos_preprocessor_config import FCOSPreprocess
 
 
 class FCOSTrainerConfig:
-    EXPERIMENT = Path(f'{FCOSCommonConfig.PREFIX}/train')
+    EXPERIMENT = FCOSCommonConfig.PREFIX / 'train'
     # EXPERIMENT = Path('outputs/test_train')
 
     EPOCHS = 20

@@ -3,30 +3,9 @@ from tensorflow.keras.callbacks import CallbackList
 from tqdm.auto import tqdm
 
 from backend.enums import DataType
-from backend.trainer.state import TrainState, EvalState
 from backend.logger import logger
+from backend.trainer.state import TrainState, EvalState
 
-
-class multiline_tqdm(tqdm):
-
-    def __init__(self, *args, desc="", **kwargs):
-        self.header_line = tqdm(
-            bar_format="{desc}",
-            desc=desc,
-            leave=kwargs.get("leave", True),
-        )
-        super().__init__(*args, **kwargs)
-
-        # Tries to close the unused progress bar in the Header Bar
-        if hasattr(self.header_line, 'container'):
-            self.header_line.container.children[1].close()
-
-    def set_description(self, *args, **kwargs):
-        self.header_line.set_description(*args, **kwargs)
-
-    def close(self, *args, **kwargs):
-        super().close(*args, **kwargs)
-        self.header_line.close(*args, **kwargs)
 
 class GenericTrainer:
     def __init__(

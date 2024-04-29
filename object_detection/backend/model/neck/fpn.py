@@ -6,6 +6,8 @@ class FPNNeck:
         self.upsample_block_generator = upsample_conv_generator
 
     def __call__(self, inputs):
+        if not isinstance(inputs, list):
+            return [inputs]
         x = inputs[-1]
         outputs = [x]
         for layer in reversed(inputs[:-1]):
