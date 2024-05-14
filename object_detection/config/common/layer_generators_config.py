@@ -1,5 +1,5 @@
 from tensorflow.keras.initializers import HeNormal
-from tensorflow.keras.layers import ReLU, BatchNormalization, Dropout, Conv2D, DepthwiseConv2D
+from tensorflow.keras.layers import ReLU, LeakyReLU, BatchNormalization, Dropout, Conv2D, DepthwiseConv2D
 from tensorflow.keras.regularizers import l1_l2
 
 L1 = 2e-6
@@ -11,7 +11,7 @@ def activation_generator():
     return ReLU()
 
 
-def dropout_generator(rate=0.2):
+def dropout_generator(rate=0.5):
     return Dropout(rate=rate)
 
 

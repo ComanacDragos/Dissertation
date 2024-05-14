@@ -3,8 +3,8 @@ from pathlib import Path
 import tensorflow as tf
 
 from backend.enums import Stage
-from backend.visualizer.image_visualizer import VisTool
-from backend.visualizer.object_detection_vis_data_generator import ObjectDetectionVisDataGenerator
+from backend.visualizer.custom_visualizer import Visualizer
+from backend.visualizer.object_detection_service import ObjectDetectionService
 from config.kitti_object_detection.data_generator_config import KittiDataGeneratorConfig
 from config.kitti_object_detection.fcos.common_fcos_config import FCOSCommonConfig
 from config.object_detectors.fcos.fcos_model_config import FCOSModelConfig
@@ -12,9 +12,9 @@ from config.object_detectors.fcos.fcos_postprocessor_config import FCOSPostproce
 
 
 class VisualizeFCOSGTAndPredictionsConfig:
-    EXPERIMENT = FCOSCommonConfig.PREFIX / "vis"
-    PATH_TO_WEIGHTS = FCOSCommonConfig.PREFIX / "train/checkpoints/model_17_0.1852328479290008_mAP.h5"
-
+    # PATH_TO_WEIGHTS = FCOSCommonConfig.PREFIX / "train/checkpoints/model_13_0.5622483491897583_mAP.h5"
+    # PATH_TO_WEIGHTS = FCOSCommonConfig.PREFIX / "train/checkpoints/model_17_0.5610086917877197_mAP.h5"
+    PATH_TO_WEIGHTS = "outputs/kitti/fcos/arch/v5_3_scales_32_64_4_layers_64_filters_v2/train/checkpoints/model_18_0.5547028183937073_mAP.h5"
     @staticmethod
     def run():
         print(f"Loading {VisualizeFCOSGTAndPredictionsConfig.PATH_TO_WEIGHTS}")
@@ -34,11 +34,14 @@ class VisualizeFCOSGTAndPredictionsConfig:
         )
 
         KittiDataGeneratorConfig.BATCH_SIZE = 1
-        VisTool(
-            ObjectDetectionVisDataGenerator(KittiDataGeneratorConfig.build(Stage.VAL)),
-            output=VisualizeFCOSGTAndPredictionsConfig.EXPERIMENT,
-            model=lambda x: postprocessor(model(x))
-        ).run()
+        KittiDataGeneratorConfig.AUGMENTATIONS = None
+        KittiDataGeneratorConfig.SHUFFLE = False
+        Visualizer(
+            ObjectDetectionService(
+                data_generator=KittiDataGeneratorConfig.build(Stage.VAL),
+                model=lambda x: postprocessor(model(x))
+            )
+        )
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 class FCOSCommonConfig:
-    PREFIX = Path('outputs/kitti/fcos/v5_3_scales_32_64_4_layers_64_filters_v2')
+    PREFIX = Path('outputs/kitti/fcos/relu/leaky_relu_50%')
 
     STRIDES_WEIGHTS = {
         8: 1.,

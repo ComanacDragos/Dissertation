@@ -5,14 +5,28 @@ import numpy as np
 from overrides import overrides
 
 from backend.data_generator.generic_data_generator import GenericDataGenerator
-from backend.enums import DataType, LabelType
+from backend.enums import DataType, LabelType, Stage
+
+
+def _process_data(image, label, processor):
+    if processor:
+        processed = processor(image=image, bboxes=label[LabelType.COORDINATES],
+                              class_labels=label[LabelType.CLASS])
+        processed_image = processed['image']
+        processed_label = {
+            LabelType.CLASS: np.asarray(processed['class_labels']),
+            LabelType.COORDINATES: np.asarray(processed['bboxes'])
+        }
+        return processed_image, processed_label
+    return image, label
 
 
 class ObjectDetectionDataGenerator(GenericDataGenerator):
-    def __init__(self, class_mapping, labels, **kwargs):
+    def __init__(self, class_mapping, labels, image_preprocessor, **kwargs):
         super().__init__(**kwargs)
         self.class_mapping = class_mapping
         self.labels = labels
+        self.image_preprocessor = image_preprocessor
 
     def load_image(self, relative_image_path):
         img = cv2.imread(str(self.root / relative_image_path))
@@ -33,14 +47,9 @@ class ObjectDetectionDataGenerator(GenericDataGenerator):
         image = self.load_image(sample['image'])
         label = self.load_label(sample['label'])
 
-        if self.augmentations:
-            augmented = self.augmentations(image=image, bboxes=label[LabelType.COORDINATES],
-                                           class_labels=label[LabelType.CLASS])
-            image = augmented['image']
-            label = {
-                LabelType.CLASS: np.asarray(augmented['class_labels']),
-                LabelType.COORDINATES: np.asarray(augmented['bboxes'])
-            }
+        image, label = _process_data(image, label, self.image_preprocessor)
+        if self.stage == Stage.TRAIN:
+            image, label = _process_data(image, label, self.augmentations)
         return {
             DataType.IDENTIFIER: sample['image'],
             DataType.IMAGE: image,

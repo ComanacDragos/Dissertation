@@ -45,23 +45,30 @@ class KittiDataGeneratorConfig:
     IMAGE_SHAPE = (320, 1024, 3)
     INPUT_SHAPE = (320 // 2, 1024 // 2, 3)
     MAX_BOXES_PER_IMAGE = 21
+    SHUFFLE = True
 
-    AUGMENTATIONS = A.Compose([
+    BBOX_PARAMS = A.BboxParams(format='pascal_voc', min_area=300, min_visibility=0.1,
+                               label_fields=['class_labels'])
+    IMAGE_PREPROCESSOR = A.Compose([
         A.Crop(
             x_min=98,
             y_min=50,
-            x_max=1220-98,  # width
+            x_max=1220 - 98,  # width
             y_max=370,  # height
         ),
         A.Resize(
             width=INPUT_SHAPE[1],
             height=INPUT_SHAPE[0]
         )
-    ], bbox_params=A.BboxParams(format='pascal_voc', min_area=300, min_visibility=0.1,
-                                label_fields=['class_labels']))
+    ], bbox_params=BBOX_PARAMS)
 
     @staticmethod
     def build(stage: Stage):
+        augmentations = A.Compose([
+            A.HorizontalFlip(),
+            A.Cutout()
+        ], bbox_params=A.BboxParams(format='pascal_voc', min_area=300, min_visibility=0.1,
+                                    label_fields=['class_labels']))
         return KittiDataGenerator(
             root=KittiDataGeneratorConfig.ROOT,
             csv_path=KittiDataGeneratorConfig.CSV_PATH,
@@ -69,7 +76,9 @@ class KittiDataGeneratorConfig:
             stage=stage,
             class_mapping=KittiDataGeneratorConfig.CLASS_MAPPING,
             labels=KittiDataGeneratorConfig.LABELS,
-            augmentations=KittiDataGeneratorConfig.AUGMENTATIONS
+            augmentations=augmentations,
+            image_preprocessor=KittiDataGeneratorConfig.IMAGE_PREPROCESSOR,
+            shuffle=KittiDataGeneratorConfig.SHUFFLE
         )
 
 

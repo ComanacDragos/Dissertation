@@ -1,21 +1,18 @@
-from pathlib import Path
-
 from backend.enums import Stage
-from backend.visualizer.image_visualizer import VisTool
-from backend.visualizer.object_detection_vis_data_generator import ObjectDetectionVisDataGenerator
+from backend.visualizer.custom_visualizer import Visualizer
+from backend.visualizer.object_detection_service import ObjectDetectionService
 from config.kitti_object_detection.data_generator_config import KittiDataGeneratorConfig
 
 
 class VisualizeGTConfig:
-    EXPERIMENT = Path("outputs/kitti")
-
     @staticmethod
     def run():
         KittiDataGeneratorConfig.BATCH_SIZE = 1
-        VisTool(
-            ObjectDetectionVisDataGenerator(KittiDataGeneratorConfig.build(Stage.ALL)),
-            output=VisualizeGTConfig.EXPERIMENT / "visualization"
-        ).run()
+        Visualizer(
+            ObjectDetectionService(
+                KittiDataGeneratorConfig.build(Stage.ALL)
+            )
+        )
 
 
 if __name__ == '__main__':

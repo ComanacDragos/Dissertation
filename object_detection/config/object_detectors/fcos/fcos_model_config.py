@@ -15,8 +15,8 @@ def conv_block_generator(filters, strides=1, add_skip_connection=False):
         conv_generator(3, filters, strides),
         activation_generator=activation_generator,
         batch_norm_generator=batch_norm_generator,
-        add_skip_connection=add_skip_connection
-        # dropout_generator=dropout_generator,
+        add_skip_connection=add_skip_connection,
+        dropout_generator=dropout_generator,
     )
 
 

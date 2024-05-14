@@ -94,7 +94,7 @@ def box_distribution(json_path):
     bins = 100
     rows = 3
     cols = 2
-    plt.figure(figsize=(10, 10))
+    # plt.figure(figsize=(10, 10))
     plt.subplot(rows, cols, 1)
     plot_dist(x_min, "x_min", bins)
 
@@ -117,6 +117,8 @@ def box_distribution(json_path):
 
     # plt.show()
     plt.savefig(json_path.split(".")[0] + ".png")
+    plt.clf()
+    plt.close()
 
 
 def classes_stats(root):
@@ -135,11 +137,11 @@ def classes_stats(root):
 if __name__ == '__main__':
     # generate_images_stats()
 
-    # box_distribution("outputs/kitti_all_classes_train.json")
-    # box_distribution("outputs/kitti_all_classes_val.json")
-    # box_distribution("outputs/kitti_2_classes_train.json")
-    # box_distribution("outputs/kitti_2_classes_val.json")
+    box_distribution("outputs/kitti/stats/kitti_all_classes_train.json")
+    box_distribution("outputs/kitti/stats/kitti_all_classes_val.json")
+    box_distribution("outputs/kitti/stats/kitti_2_classes_train.json")
+    box_distribution("outputs/kitti/stats/kitti_2_classes_val.json")
 
     # generate_boxes("outputs/kitti_all_classes_train.json", Stage.TRAIN)
 
-    classes_stats(Path("outputs/kitti/stats"))
+    # classes_stats(Path("outputs/kitti/stats"))
