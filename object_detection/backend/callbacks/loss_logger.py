@@ -58,15 +58,15 @@ class LossLogger(Callback):
                 'train_loss_per_step.png'
             )
 
-        pd.DataFrame.from_dict({
-            'epoch': self.train_epoch_history,
-            'step': self.train_step_history,
-            'lr': self.lr_history,
-            **self.train_loss_history
-        }).to_csv(
-            self.train_csv_path, index=False,
-            float_format=lambda x: round(x, 9)
-        )
+            pd.DataFrame.from_dict({
+                'epoch': self.train_epoch_history,
+                'step': self.train_step_history,
+                'lr': self.lr_history,
+                **self.train_loss_history
+            }).to_csv(
+                self.train_csv_path, index=False,
+                float_format=lambda x: round(x, 9)
+            )
 
     def on_test_batch_end(self, batch, logs: EvalState = None):
         self.eval_epoch_history.append(logs.epoch)
@@ -85,14 +85,14 @@ class LossLogger(Callback):
                 'eval_loss_per_step.png'
             )
 
-        pd.DataFrame.from_dict({
-            'epoch': self.eval_epoch_history,
-            'step': self.eval_step_history,
-            **self.eval_loss_history
-        }).to_csv(
-            self.eval_csv_path, index=False,
-            float_format=lambda x: round(x, 9)
-        )
+            pd.DataFrame.from_dict({
+                'epoch': self.eval_epoch_history,
+                'step': self.eval_step_history,
+                **self.eval_loss_history
+            }).to_csv(
+                self.eval_csv_path, index=False,
+                float_format=lambda x: round(x, 9)
+            )
 
     @staticmethod
     def _get_values_for_epoch(target_epoch, epochs, values):
@@ -134,10 +134,29 @@ class LossLogger(Callback):
             'train_loss_per_step.png'
         )
 
+        pd.DataFrame.from_dict({
+            'epoch': self.train_epoch_history,
+            'step': self.train_step_history,
+            'lr': self.lr_history,
+            **self.train_loss_history
+        }).to_csv(
+            self.train_csv_path, index=False,
+            float_format=lambda x: round(x, 9)
+        )
+
         self.plot_eval_loss(
             self.eval_loss_history,
             self.eval_epoch_history,
             'eval_loss_per_step.png'
+        )
+
+        pd.DataFrame.from_dict({
+            'epoch': self.eval_epoch_history,
+            'step': self.eval_step_history,
+            **self.eval_loss_history
+        }).to_csv(
+            self.eval_csv_path, index=False,
+            float_format=lambda x: round(x, 9)
         )
 
     def plot_eval_loss(self, loss_dict, epochs, name):

@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 class FCOSCommonConfig:
-    PREFIX = Path('outputs/kitti/fcos/relu/leaky_relu_50%')
+    PREFIX = Path('outputs/kitti/fcos/loss/original_dataset/custom_arch/clip_loss')
 
     STRIDES_WEIGHTS = {
         8: 1.,

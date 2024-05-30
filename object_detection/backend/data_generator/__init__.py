@@ -1,3 +1,4 @@
 from .kitti_data_generator import KittiDataGenerator
 from .mnist_data_generator import MNISTDataGenerator
 from .public_transport_data_generator import PublicTransportDataGenerator
+from .coco_data_generator import COCODataGenerator

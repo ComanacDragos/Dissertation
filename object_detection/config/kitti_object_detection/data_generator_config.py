@@ -19,28 +19,28 @@ class KittiDataGeneratorConfig:
     #     "Tram": "Tram",
     #     "Person_sitting": "Person"
     # }
-    CLASS_MAPPING = {
-        "Pedestrian": "Person",
-        "Truck": "Vehicle",
-        "Car": "Vehicle",
-        "Cyclist": "Person",
-        # "DontCare": "DontCare",
-        # "Misc": "Misc",
-        "Van": "Vehicle",
-        "Tram": "Vehicle",
-        "Person_sitting": "Person"
-    }
     # CLASS_MAPPING = {
-    #     "Pedestrian": "Pedestrian",
-    #     "Truck": "Truck",
-    #     "Car": "Car",
-    #     "Cyclist": "Cyclist",
-    #     "DontCare": "DontCare",
-    #     "Misc": "Misc",
-    #     "Van": "Van",
-    #     "Tram": "Tram",
-    #     "Person_sitting": "Person_sitting"
+    #     "Pedestrian": "Person",
+    #     "Truck": "Vehicle",
+    #     "Car": "Vehicle",
+    #     "Cyclist": "Person",
+    #     # "DontCare": "DontCare",
+    #     # "Misc": "Misc",
+    #     "Van": "Vehicle",
+    #     "Tram": "Vehicle",
+    #     "Person_sitting": "Person"
     # }
+    CLASS_MAPPING = {
+        "Pedestrian": "Pedestrian",
+        "Truck": "Truck",
+        "Car": "Car",
+        "Cyclist": "Cyclist",
+        "DontCare": "DontCare",
+        "Misc": "Misc",
+        "Van": "Van",
+        "Tram": "Tram",
+        "Person_sitting": "Person_sitting"
+    }
     LABELS = sorted(set(CLASS_MAPPING.values()))
     IMAGE_SHAPE = (320, 1024, 3)
     INPUT_SHAPE = (320 // 2, 1024 // 2, 3)

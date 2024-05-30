@@ -6,7 +6,7 @@ from backend.loss.custom_loss import CustomLoss
 
 
 class FCOSLoss(CustomLoss):
-    def __init__(self, image_size, strides_weights, reg_weight, class_weight, centerness_weight, class_loss, reg_loss):
+    def __init__(self, image_size, strides_weights, reg_weight, class_weight, centerness_weight, class_loss, reg_loss, clip_regression_targets):
         """
         :param image_size: h w
         :param strides_weights: {stride:int -> weight: float}
@@ -22,6 +22,7 @@ class FCOSLoss(CustomLoss):
         self.reg_weight = reg_weight
         self.class_weight = class_weight
         self.centerness_weight = centerness_weight
+        self.clip_regression_targets = clip_regression_targets
 
         self.class_loss = class_loss
         self.reg_loss = reg_loss
@@ -46,7 +47,8 @@ class FCOSLoss(CustomLoss):
             # compute regression loss
             reg_pred = tf.math.exp(reg_pred)
             H, W = self.image_size
-            reg_pred = tf.clip_by_value(reg_pred, clip_value_min=0, clip_value_max=[W, H, W, H])
+            if self.clip_regression_targets:
+                reg_pred = tf.clip_by_value(reg_pred, clip_value_min=0, clip_value_max=[W, H, W, H])
             reg_loss = tf.reduce_sum(self.reg_loss(reg_gt, reg_pred) * gt_indicator)
             reg_loss = (reg_loss * self.reg_weight) / num_pos
             loss_dict[f"reg_{stride}"] = reg_loss

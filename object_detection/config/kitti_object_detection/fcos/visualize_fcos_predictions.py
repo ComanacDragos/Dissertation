@@ -10,7 +10,8 @@ from config.object_detectors.fcos.fcos_postprocessor_config import FCOSPostproce
 class VisualizeFCOSPredictionsConfig:
     # PATH_TO_WEIGHTS = FCOSCommonConfig.PREFIX / "train/checkpoints/model_13_0.5622483491897583_mAP.h5"
     # PATH_TO_WEIGHTS = FCOSCommonConfig.PREFIX / "train/checkpoints/model_17_0.5610086917877197_mAP.h5"
-    PATH_TO_WEIGHTS = "outputs/kitti/fcos/arch/v5_3_scales_32_64_4_layers_64_filters_v2/train/checkpoints/model_18_0.5547028183937073_mAP.h5"
+    # PATH_TO_WEIGHTS = "outputs/kitti/fcos/arch/v5_3_scales_32_64_4_layers_64_filters_v2/train/checkpoints/model_18_0.5547028183937073_mAP.h5"
+    PATH_TO_WEIGHTS = "outputs/kitti/fcos/loss/original_dataset/original_arch/original_loss/train/checkpoints/model_16_0.2020085602998733_mAP.h5"
 
     @staticmethod
     def run():

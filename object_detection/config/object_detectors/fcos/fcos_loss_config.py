@@ -12,6 +12,8 @@ class FCOSLossConfig:
     FOCAL_ALPHA = 0.25
     FOCAL_GAMMA = 2.
 
+    CLIP_REGRESSION_TARGETS = True
+
     @staticmethod
     def build(image_size, strides_weights):
         def iou_loss_wrapper(target, pred):
@@ -32,4 +34,5 @@ class FCOSLossConfig:
             centerness_weight=FCOSLossConfig.CENTERNESS_WEIGHT,
             class_loss=focal_loss_wrapper,
             reg_loss=iou_loss_wrapper,
+            clip_regression_targets=False
         )
