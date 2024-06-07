@@ -10,7 +10,7 @@ class VisualizeGTConfig:
         COCODataGeneratorConfig.BATCH_SIZE = 1
         Visualizer(
             ObjectDetectionService(
-                COCODataGeneratorConfig.build(Stage.ALL)
+                COCODataGeneratorConfig.build(Stage.VAL)
             )
         )
 
