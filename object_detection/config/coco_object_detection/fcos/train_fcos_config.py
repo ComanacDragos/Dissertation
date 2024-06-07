@@ -19,7 +19,7 @@ class FCOSTrainerConfig:
     EXPERIMENT = FCOSCommonConfig.PREFIX / 'train'
     # EXPERIMENT = Path('outputs/test_train')
 
-    EPOCHS = 20
+    EPOCHS = 6
     START_LR = 1e-4
 
     @staticmethod

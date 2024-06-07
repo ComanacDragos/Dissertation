@@ -14,15 +14,16 @@ def generate_categories(root, cat_type):
 class COCODataGeneratorConfig:
     ROOT = r"C:\Users\Dragos\datasets\coco"
     CSV_PATH = "csvs/coco.csv"
-    BATCH_SIZE = 6
-    CATEGORY_TYPE = "supercategory"
+    BATCH_SIZE = 8
+    CATEGORY_TYPE = "name"
 
     CLASS_MAPPING = generate_categories(ROOT, CATEGORY_TYPE)
     MAX_BOXES_PER_IMAGE = 91 * 4
 
     LABELS = sorted(set(CLASS_MAPPING.values()))
-    IMAGE_SHAPE = (480, 640, 3)
-    INPUT_SHAPE = (480, 640, 3)
+    # IMAGE_SHAPE = (480, 640, 3)
+    # INPUT_SHAPE = (480, 640, 3)
+    INPUT_SHAPE = (320, 416, 3)
     SHUFFLE = True
 
     BBOX_PARAMS = A.BboxParams(format='pascal_voc', min_area=300, min_visibility=0.1,
@@ -57,8 +58,22 @@ class COCODataGeneratorConfig:
 
 if __name__ == '__main__':
     print("Starting")
-    COCODataGeneratorConfig.BATCH_SIZE = 32
-    db = COCODataGeneratorConfig.build(Stage.VAL)
-    print(len(db))
-    data = db[0]
-    print(f"Images shape {data[DataType.IMAGE].shape}")
+    # COCODataGeneratorConfig.BATCH_SIZE = 32
+    # db = COCODataGeneratorConfig.build(Stage.VAL)
+    # print(len(db))
+    # data = db[0]
+    # print(f"Images shape {data[DataType.IMAGE].shape}")
+
+    from backend.utils import set_seed
+    set_seed(0)
+    COCODataGeneratorConfig.BATCH_SIZE = 1
+    COCODataGeneratorConfig.SHUFFLE = False
+
+    db = COCODataGeneratorConfig.build(Stage.ALL)
+
+    from tqdm import tqdm
+    for i in tqdm(range(len(db)), total=len(db)):
+        try:
+            data = db[i]
+        except ValueError:
+            continue

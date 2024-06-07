@@ -2,7 +2,8 @@ from pathlib import Path
 
 
 class FCOSCommonConfig:
-    PREFIX = Path('outputs/coco/fcos/loss/supercategory/custom_arch/clip_loss')
+    PREFIX = Path('outputs/coco/fcos/loss/name/custom_arch/original_loss')
+    # PREFIX = Path('outputs/coco/fcos/toy')
 
     STRIDES_WEIGHTS = {
         8: 1.,
